@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/staff_model.dart';
 import '../widgets/roster_card.dart';
 
@@ -10,40 +11,42 @@ class StaffRosterScreen extends StatefulWidget {
 }
 
 class _StaffRosterScreenState extends State<StaffRosterScreen> {
-  // Mock data list made modifiable so we can add new entries dynamically
-  final List<ShiftModel> _shifts = [
-    ShiftModel(
-      shiftName: 'Morning Shift',
-      timeRange: '06:00 - 14:00',
-      status: 'Active Now',
-      supervisorName: 'Officer M. Banda',
-      supervisorRole: 'Supervisor',
-      assignedLocation: 'Maula Yard & Perimeter',
-      officerCount: 6,
-    ),
-    ShiftModel(
-      shiftName: 'Afternoon Shift',
-      timeRange: '14:00 - 22:00',
-      status: 'Scheduled',
-      supervisorName: 'Officer T. Phiri',
-      supervisorRole: 'Guard Lead',
-      assignedLocation: 'Standard Perimeter',
-      officerCount: 5,
-    ),
-    ShiftModel(
-      shiftName: 'Night Shift',
-      timeRange: '22:00 - 06:00',
-      status: 'High Alert',
-      supervisorName: 'Officer L. Nkhata',
-      supervisorRole: 'Night Guard Lead',
-      assignedLocation: 'Armed Watch & Gates',
-      officerCount: 4,
-    ),
-  ];
+  late Box _shiftsBox;
+  List<ShiftModel> _shifts = [];
 
-  // Explicitly typed GlobalKey to prevent null casting errors
+  @override
+  void initState() {
+    super.initState();
+    _shiftsBox = Hive.box('staff_shifts_box');
+    _loadShifts();
+  }
+
+  // Load shifts from Hive local storage (seed default data if empty)
+  void _loadShifts() {
+    if (_shiftsBox.isEmpty) {
+      // Seed default mock shifts if local storage is empty
+      final defaultShifts = [
+        ShiftModel(shiftName: 'Morning Shift', timeRange: '06:00 - 14:00', status: 'Active Now', supervisorName: 'Officer M. Banda', supervisorRole: 'Supervisor', assignedLocation: 'Maula Yard & Perimeter', officerCount: 6),
+        ShiftModel(shiftName: 'Afternoon Shift', timeRange: '14:00 - 22:00', status: 'Scheduled', supervisorName: 'Officer T. Phiri', supervisorRole: 'Guard Lead', assignedLocation: 'Standard Perimeter', officerCount: 5),
+        ShiftModel(shiftName: 'Night Shift', timeRange: '22:00 - 06:00', status: 'High Alert', supervisorName: 'Officer L. Nkhata', supervisorRole: 'Night Guard Lead', assignedLocation: 'Armed Watch & Gates', officerCount: 4),
+      ];
+      for (var shift in defaultShifts) {
+        _shiftsBox.add(shift.toMap());
+      }
+    }
+
+    setState(() {
+      _shifts = _shiftsBox.values.map((e) => ShiftModel.fromMap(e)).toList();
+    });
+  }
+
+  // Save new shift to Hive local storage
+  void _saveShift(ShiftModel newShift) {
+    _shiftsBox.add(newShift.toMap());
+    _loadShifts(); // Refresh local list
+  }
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  
   final TextEditingController _shiftNameController = TextEditingController();
   final TextEditingController _timeRangeController = TextEditingController();
   final TextEditingController _supervisorController = TextEditingController();
@@ -63,7 +66,6 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
     super.dispose();
   }
 
-  // Method to open the interactive Shift Assignment Dialog
   void _showAssignShiftDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -135,19 +137,19 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C4A3E), foregroundColor: Colors.white),
               onPressed: () {
                 if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-                  setState(() {
-                    _shifts.add(
-                      ShiftModel(
-                        shiftName: _shiftNameController.text,
-                        timeRange: _timeRangeController.text,
-                        status: _selectedStatus,
-                        supervisorName: _supervisorController.text,
-                        supervisorRole: _roleController.text,
-                        assignedLocation: _locationController.text,
-                        officerCount: int.tryParse(_countController.text) ?? 1,
-                      ),
-                    );
-                  });
+                  final newShift = ShiftModel(
+                    shiftName: _shiftNameController.text,
+                    timeRange: _timeRangeController.text,
+                    status: _selectedStatus,
+                    supervisorName: _supervisorController.text,
+                    supervisorRole: _roleController.text,
+                    assignedLocation: _locationController.text,
+                    officerCount: int.tryParse(_countController.text) ?? 1,
+                  );
+
+                  // Save to local storage
+                  _saveShift(newShift);
+
                   // Clear controllers and close dialog
                   _shiftNameController.clear();
                   _timeRangeController.clear();
@@ -184,7 +186,6 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
       ),
       body: Column(
         children: [
-          // Date Selector Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: const Color(0xFF2C4A3E),
@@ -208,7 +209,6 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
               ),
             ),
           ),
-          // Top Statistics Summary Tiles
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.white,
@@ -224,7 +224,6 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          // Action Bar with Working Assign Shift Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: Row(
@@ -240,7 +239,6 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
               ],
             ),
           ),
-          // Shift Roster List
           Expanded(
             child: ListView.builder(
               itemCount: _shifts.length,

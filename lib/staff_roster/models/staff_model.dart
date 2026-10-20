@@ -1,11 +1,11 @@
 class ShiftModel {
-  final String shiftName; // e.g., Morning Shift, Afternoon Shift, Night Shift
-  final String timeRange; // e.g., 06:00 - 14:00
-  final String status; // e.g., Active Now, Scheduled, High Alert
-  final String supervisorName; // e.g., Officer M. Banda
-  final String supervisorRole; // e.g., Supervisor, Guard Lead
-  final String assignedLocation; // e.g., Maula Yard & Perimeter
-  final int officerCount; // e.g., 6 Officers
+  final String shiftName;
+  final String timeRange;
+  final String status;
+  final String supervisorName;
+  final String supervisorRole;
+  final String assignedLocation;
+  final int officerCount;
 
   ShiftModel({
     required this.shiftName,
@@ -16,4 +16,30 @@ class ShiftModel {
     required this.assignedLocation,
     required this.officerCount,
   });
+
+  // Convert ShiftModel to Map for local storage
+  Map<String, dynamic> toMap() {
+    return {
+      'shiftName': shiftName,
+      'timeRange': timeRange,
+      'status': status,
+      'supervisorName': supervisorName,
+      'supervisorRole': supervisorRole,
+      'assignedLocation': assignedLocation,
+      'officerCount': officerCount,
+    };
+  }
+
+  // Create ShiftModel from local storage Map
+  factory ShiftModel.fromMap(Map<dynamic, dynamic> map) {
+    return ShiftModel(
+      shiftName: map['shiftName'] ?? '',
+      timeRange: map['timeRange'] ?? '',
+      status: map['status'] ?? '',
+      supervisorName: map['supervisorName'] ?? '',
+      supervisorRole: map['supervisorRole'] ?? '',
+      assignedLocation: map['assignedLocation'] ?? '',
+      officerCount: map['officerCount'] ?? 0,
+    );
+  }
 }

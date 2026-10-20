@@ -27,6 +27,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        ndkVersion = "25.2.9519653"
     }
 
     buildTypes {
