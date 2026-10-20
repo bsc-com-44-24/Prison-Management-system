@@ -3,8 +3,13 @@ import '../models/staff_model.dart';
 
 class RosterCard extends StatelessWidget {
   final ShiftModel shift;
+  final VoidCallback onContactPressed; // Callback for popup action
 
-  const RosterCard({super.key, required this.shift});
+  const RosterCard({
+    super.key, 
+    required this.shift,
+    required this.onContactPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,7 @@ class RosterCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -40,22 +45,23 @@ class RosterCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Shift Header & Status Badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    shift.shiftName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    shift.timeRange,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      shift.shiftName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      shift.timeRange,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -71,12 +77,11 @@ class RosterCard extends StatelessWidget {
             ],
           ),
           const Divider(height: 24, thickness: 1),
-          // Supervisor Details Row
           Row(
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: const Color(0xFF2C4A3E).withValues(alpha: 0.1),
+                backgroundColor: const Color(0xFF2C4A3E).withOpacity(0.1),
                 child: const Icon(Icons.person, color: Color(0xFF2C4A3E), size: 20),
               ),
               const SizedBox(width: 12),
@@ -96,13 +101,12 @@ class RosterCard extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: onContactPressed, // Hooks up the pop-up modal
                 child: const Text("Contact", style: TextStyle(color: Color(0xFF991B1B), fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Footer: Officer Count & Location
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

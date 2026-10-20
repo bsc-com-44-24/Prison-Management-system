@@ -168,6 +168,68 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
     );
   }
 
+void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(shift.shiftName, style: const TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _detailRow("Time Range:", shift.timeRange),
+                _detailRow("Location:", shift.assignedLocation),
+                _detailRow("Status:", shift.status),
+                const Divider(height: 24),
+                const Text("Supervisor Details", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E))),
+                const SizedBox(height: 8),
+                _detailRow("Name:", shift.supervisorName),
+                _detailRow("Role:", shift.supervisorRole),
+                _detailRow("Phone:", shift.supervisorPhone),
+                _detailRow("Email:", shift.supervisorEmail),
+                const Divider(height: 24),
+                Text("Assigned Personnel (${shift.assignedGuards.length} Officers)", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E))),
+                const SizedBox(height: 8),
+                ...shift.assignedGuards.map((guard) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.fiber_manual_record, size: 8, color: Color(0xFF2C4A3E)),
+                      const SizedBox(width: 8),
+                      Text(guard, style: const TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C4A3E), foregroundColor: Colors.white),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 100, child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 13))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -243,7 +305,10 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
             child: ListView.builder(
               itemCount: _shifts.length,
               itemBuilder: (context, index) {
-                return RosterCard(shift: _shifts[index]);
+                return RosterCard(
+                shift: _shifts[index],
+                onContactPressed: () => _showShiftDetailDialog(context, _shifts[index]),
+              );
               },
             ),
           ),
