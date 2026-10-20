@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.prison_management_system"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    //ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -27,6 +27,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        ndkVersion = "25.2.9519653"
     }
 
     buildTypes {
