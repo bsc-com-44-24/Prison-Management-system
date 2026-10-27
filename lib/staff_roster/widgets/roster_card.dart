@@ -107,22 +107,43 @@ class RosterCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+         Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.security, size: 14, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Text(
-                    "${shift.officerCount} Officers - ${shift.assignedLocation}",
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                  ),
-                ],
+              // 1. Wrap the inner row in Expanded so it occupies available space smoothly
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.shield_outlined, // or Icons.security
+                      size: 15,
+                      color: Color(0xFF2C2C2C), // Crisp dark grey icon
+                    ),
+                    const SizedBox(width: 6),
+                    // 2. Wrap Text in Flexible/Expanded with TextOverflow.ellipsis
+                    Expanded(
+                      child: Text(
+                        "${shift.officerCount} Officers - ${shift.assignedLocation}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis, // Prevents text squishing on narrow screens
+                        style: const TextStyle(
+                          color: Color(0xFF2C2C2C), // Solid high-contrast color
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600, // Semi-bold for extra clarity on low-DPI displays
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Color(0xFF666666),
+              ),
             ],
-          ),
+          )
         ],
       ),
     );

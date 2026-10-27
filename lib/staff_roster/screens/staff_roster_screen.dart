@@ -236,7 +236,7 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
         title: const Text('Duty Roster'),
-        backgroundColor: const Color(0xFF2C4A3E),
+        backgroundColor: const Color(0xFF344B3B),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -296,7 +296,7 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
                   onPressed: () => _showAssignShiftDialog(context),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Assign Shift'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C4A3E), foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7A1F2D), foregroundColor: Colors.white),
                 ),
               ],
             ),
