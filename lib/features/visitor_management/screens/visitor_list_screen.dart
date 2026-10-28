@@ -11,7 +11,7 @@ class VisitorListScreen extends StatefulWidget {
 }
 
 class _VisitorListScreenState extends State<VisitorListScreen> {
-  int _currentNavIndex = 1; 
+  int _currentNavIndex = 0; 
   List<Visitor> _visitors = [];
   bool _isLoading = true;
 
@@ -177,11 +177,13 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        currentIndex: _currentNavIndex,
-        selectedItemColor: const Color(0xFF344B3B), 
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        currentIndex: 0, 
+        selectedItemColor: Colors.grey, // Forced grey styling
+        unselectedItemColor: Colors.grey, 
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 11, color: Colors.grey),
+        unselectedLabelStyle: const TextStyle(fontSize: 11, color: Colors.grey),
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         onTap: (index) {
           setState(() {
             _currentNavIndex = index;
@@ -189,23 +191,23 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined, color: Colors.grey),
+            activeIcon: Icon(Icons.home_outlined, color: Colors.grey),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
+            icon: Icon(Icons.people_outline, color: Colors.grey),
+            activeIcon: Icon(Icons.people_outline, color: Colors.grey),
             label: 'Inmates',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.description_outlined),
-            activeIcon: Icon(Icons.description),
-            label: 'Reports',
+            icon: Icon(Icons.gps_fixed, color: Colors.grey), // Target crosshair icon
+            activeIcon: Icon(Icons.gps_fixed, color: Colors.grey),
+            label: 'Tracking',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline, color: Colors.grey),
+            activeIcon: Icon(Icons.person_outline, color: Colors.grey),
             label: 'Profile',
           ),
         ],
@@ -284,12 +286,12 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F4),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF344B3B),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+backgroundColor: const Color(0xFFF4F6F4),
+appBar: AppBar(
+backgroundColor: const Color(0xFF344B3B),
+elevation: 0,
+leading: IconButton(
+icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
 onPressed: () => Navigator.pop(context),
 ),
 title: const Text(
