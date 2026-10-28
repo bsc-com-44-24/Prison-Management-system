@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import 'inmate_module/screens/inmate_list_screen.dart';
+import 'screens/inmate_list_screen.dart';
 
-void main() {
-  runApp(const PrisonManagementApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('inmates_box'); // Open local Hive box
+  runApp(const MyApp());
 }
 
-class PrisonManagementApp extends StatelessWidget {
-  const PrisonManagementApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +19,8 @@ class PrisonManagementApp extends StatelessWidget {
       title: 'Prison Management System',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.green,
-        scaffoldBackgroundColor: Colors.grey[100],
+        primaryColor: const Color(0xFF344b3b), // Dark Green Header
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF344b3b)),
       ),
       home: const InmateListScreen(),
     );

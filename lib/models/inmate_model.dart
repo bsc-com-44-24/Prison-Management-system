@@ -24,4 +24,32 @@ class InmateModel {
     required this.releaseDate,
     required this.status,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'fullName': fullName,
+    'gender': gender,
+    'age': age,
+    'dateOfBirth': dateOfBirth,
+    'nationality': nationality,
+    'facility': facility,
+    'offenceCategory': offenceCategory,
+    'sentenceYears': sentenceYears,
+    'releaseDate': releaseDate,
+    'status': status,
+  };
+
+  factory InmateModel.fromJson(Map<dynamic, dynamic> json) => InmateModel(
+    id: json['id'] ?? '',
+    fullName: json['fullName'] ?? '',
+    gender: json['gender'] ?? '',
+    age: json['age'] ?? 0,
+    dateOfBirth: json['dateOfBirth'] ?? '',
+    nationality: json['nationality'] ?? '',
+    facility: json['facility'] ?? '',
+    offenceCategory: json['offenceCategory'] ?? '',
+    sentenceYears: json['sentenceYears'] ?? 0,
+    releaseDate: json['releaseDate'] ?? '',
+    status: json['status'] ?? 'Active',
+  );
 }
