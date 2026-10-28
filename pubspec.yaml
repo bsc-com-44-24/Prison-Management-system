@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.5
+  sdk: ^3.13.4
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,6 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  sqflite: ^2.3.3
+  sqflite_common_ffi_web: ^0.4.5
+  path: ^1.9.0
+  crypto: ^3.0.3
+ 
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+ 
   hive_flutter: ^1.1.0 
 
 
@@ -57,11 +65,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
+
+  assets: 
+    - assets/images/prison.jpg
+
   assets:
     - assets/images/Prison logo.jpg
   # To add assets to your application, add an assets section, like this:
