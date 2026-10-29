@@ -111,7 +111,7 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: _selectedStatus,
+                    initialValue: _selectedStatus,
                     decoration: const InputDecoration(labelText: 'Status'),
                     items: ['Active Now', 'Scheduled', 'High Alert'].map((status) {
                       return DropdownMenuItem(value: status, child: Text(status));

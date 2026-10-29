@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../database/db_helper.dart';
 import '../models/inmate_model.dart';
 import 'new_inmate_screen.dart';
 

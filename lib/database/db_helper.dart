@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 
-import '../models/inmate_model.dart';
+import '../Inmate_management/models/inmate_model.dart';
 
 class DBHelper {
   static final Box _box = Hive.box('inmates_box');

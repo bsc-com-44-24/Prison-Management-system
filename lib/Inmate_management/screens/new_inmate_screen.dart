@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../database/db_helper.dart';
+import '../../database/db_helper.dart';
 import '../models/inmate_model.dart';
 
 class NewInmateScreen extends StatefulWidget {
@@ -117,7 +117,7 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedGender,
+                initialValue: selectedGender,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -160,7 +160,7 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedOffence,
+                initialValue: selectedOffence,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,

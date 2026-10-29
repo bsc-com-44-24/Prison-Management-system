@@ -36,7 +36,7 @@ class RosterCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -81,7 +81,7 @@ class RosterCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: const Color(0xFF2C4A3E).withOpacity(0.1),
+                backgroundColor: const Color(0xFF2C4A3E).withValues(alpha: 0.1),
                 child: const Icon(Icons.person, color: Color(0xFF2C4A3E), size: 20),
               ),
               const SizedBox(width: 12),
