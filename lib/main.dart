@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-
 import 'authentication/db/database_helper.dart';
 import 'authentication/theme.dart';
 import 'authentication/screens/login_screen.dart';
