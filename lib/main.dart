@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-
 import 'authentication/db/database_helper.dart';
 import 'authentication/theme.dart';
 import 'authentication/screens/login_screen.dart';
@@ -48,7 +47,7 @@ class PrisonApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
         '/forgot': (_) => const ForgotPasswordScreen(),
-        '/home': (_) => const HomeScreen(user: {}),
+        '/home': (_) => const DashboardScreen(),
         '/inmates': (_) => const InmateListScreen(),
         '/visitors': (_) => const VisitorListScreen(),
       },

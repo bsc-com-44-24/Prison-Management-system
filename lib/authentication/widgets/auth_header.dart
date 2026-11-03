@@ -22,7 +22,7 @@ class AuthHeader extends StatelessWidget {
     final logo = Image.asset(
       'assets/images/prison.jpg',
       height: logoSize,
-      errorBuilder: (_, _, _) =>
+      errorBuilder: (context, error, stackTrace) =>
           Icon(Icons.shield, size: logoSize, color: Colors.amber),
     );
 
