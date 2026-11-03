@@ -9,7 +9,8 @@ import 'authentication/theme.dart';
 import 'authentication/screens/login_screen.dart';
 import 'authentication/screens/register_screen.dart';
 import 'authentication/screens/forgot_password_screen.dart';
-import 'authentication/screens/home_screen.dart';
+import 'authentication/screens/dashboard_screen.dart';
+import 'authentication/screens/profile_and_settings_screen.dart';
 import 'splash/screens/splash_screen.dart';
 import 'Inmate_management/screens/inmate_list_screen.dart';
 import 'visitor_management/screens/visitor_list_screen.dart';
@@ -48,7 +49,7 @@ class PrisonApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
         '/forgot': (_) => const ForgotPasswordScreen(),
-        '/home': (_) => const HomeScreen(user: {}),
+        '/home': (_) => const DashboardScreen(),
         '/inmates': (_) => const InmateListScreen(),
         '/visitors': (_) => const VisitorListScreen(),
       },
