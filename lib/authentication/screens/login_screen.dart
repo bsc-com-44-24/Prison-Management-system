@@ -295,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           builder: (_) => const RegisterScreen()),
                     ),
                     child: const Text('Sign up',
-                        style: TextStyle(color: Color.fromARGB(255, 43, 62, 27), fontSize: 16)),
+                        style: TextStyle(color: kGreen, fontSize: 16)),
                   ),
                 ]),
                 const SizedBox(height: 24),
