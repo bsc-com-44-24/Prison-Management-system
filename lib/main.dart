@@ -13,6 +13,7 @@ import 'authentication/screens/profile_and_settings_screen.dart';
 import 'splash/screens/splash_screen.dart';
 import 'Inmate_management/screens/inmate_list_screen.dart';
 import 'visitor_management/screens/visitor_list_screen.dart';
+import 'release_management/screens/release_management_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +43,7 @@ class PrisonApp extends StatelessWidget {
       title: 'Prison Management System',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      initialRoute: '/',
+      initialRoute: '/release-test',
       routes: {
         '/': (_) => const SplashScreen(),
         '/login': (_) => const LoginScreen(),
@@ -51,6 +52,7 @@ class PrisonApp extends StatelessWidget {
         '/home': (_) => const DashboardScreen(),
         '/inmates': (_) => const InmateListScreen(),
         '/visitors': (_) => const VisitorListScreen(),
+        '/release-test': (_) => const ReleaseManagementScreen(),
       },
     );
   }
