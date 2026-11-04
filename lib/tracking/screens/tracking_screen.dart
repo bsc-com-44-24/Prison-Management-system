@@ -16,85 +16,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   // Sample tracking records.
   // These are mock records, not database records.
-  final List<TrackingItem> _trackingItems = [
-    // Visitors
-    TrackingItem(
-      title: 'Grace Moyo',
-      subtitle: 'Sister',
-      dateOrDuration: '10 Oct 2026 • 10:00',
-      status: 'Approved',
-      detailInfo: 'ID: MP-98214 • Inmate: John Moyo',
-      category: 'Visitors',
-    ),
-    TrackingItem(
-      title: 'James Phiri',
-      subtitle: 'Brother',
-      dateOrDuration: '11 Oct 2026 • 14:00',
-      status: 'Pending',
-      detailInfo: 'ID: MP-33102 • Inmate: David Phiri',
-      category: 'Visitors',
-    ),
-    TrackingItem(
-      title: 'Beatrice Nkhata',
-      subtitle: 'Wife',
-      dateOrDuration: '12 Oct 2026 • 09:00',
-      status: 'Approved',
-      detailInfo: 'ID: MP-55411 • Inmate: Peter Nkhata',
-      category: 'Visitors',
-    ),
-    TrackingItem(
-      title: 'Daniel Chisala',
-      subtitle: 'Friend',
-      dateOrDuration: '14 Oct 2026 • 11:00',
-      status: 'Rejected',
-      detailInfo: 'ID: MP-11029 • Inmate: Samuel Chisala',
-      category: 'Visitors',
-    ),
+  final List<TrackingItem> _trackingItems = [];
 
-    // Inmates
-    TrackingItem(
-      title: 'John Moyo',
-      subtitle: 'Block B • Cell #14',
-      dateOrDuration: 'Sentence: 4 Years',
-      status: 'Active',
-      detailInfo: 'ID: MP/00189 • Release: Oct 2030',
-      category: 'Inmate',
-    ),
-    TrackingItem(
-      title: 'David Phiri',
-      subtitle: 'Block A • Cell #03',
-      dateOrDuration: 'Sentence: 2 Years',
-      status: 'Active',
-      detailInfo: 'ID: MP/00214 • Release: Nov 2028',
-      category: 'Inmate',
-    ),
-    TrackingItem(
-      title: 'Peter Nkhata',
-      subtitle: 'Block C • Cell #22',
-      dateOrDuration: 'Sentence: 5 Years',
-      status: 'Active',
-      detailInfo: 'ID: MP/00305 • Release: Jan 2031',
-      category: 'Inmate',
-    ),
-
-    // Activities
-    TrackingItem(
-      title: 'To Workshop',
-      subtitle: 'Woodwork & Crafts Facility',
-      dateOrDuration: '10 Oct 2026 • 08:30',
-      status: 'Completed',
-      detailInfo: 'Escort: Officer Banda',
-      category: 'Activities',
-    ),
-    TrackingItem(
-      title: 'To Clinic',
-      subtitle: 'Prison Medical Ward - Checkup',
-      dateOrDuration: '07 Oct 2026 • 14:15',
-      status: 'Logged',
-      detailInfo: 'Attending: Dr. Phiri',
-      category: 'Activities',
-    ),
-  ];
 
   void _goBack() {
     if (Navigator.canPop(context)) {

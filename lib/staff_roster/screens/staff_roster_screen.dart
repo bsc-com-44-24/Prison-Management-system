@@ -21,20 +21,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
     _loadShifts();
   }
 
-  // Load shifts from Hive local storage (seed default data if empty)
+  // Load shifts from Hive local storage without seeding mock data
   void _loadShifts() {
-    if (_shiftsBox.isEmpty) {
-      // Seed default mock shifts if local storage is empty
-      final defaultShifts = [
-        ShiftModel(shiftName: 'Morning Shift', timeRange: '06:00 - 14:00', status: 'Active Now', supervisorName: 'Officer M. Banda', supervisorRole: 'Supervisor', assignedLocation: 'Maula Yard & Perimeter', officerCount: 6),
-        ShiftModel(shiftName: 'Afternoon Shift', timeRange: '14:00 - 22:00', status: 'Scheduled', supervisorName: 'Officer T. Phiri', supervisorRole: 'Guard Lead', assignedLocation: 'Standard Perimeter', officerCount: 5),
-        ShiftModel(shiftName: 'Night Shift', timeRange: '22:00 - 06:00', status: 'High Alert', supervisorName: 'Officer L. Nkhata', supervisorRole: 'Night Guard Lead', assignedLocation: 'Armed Watch & Gates', officerCount: 4),
-      ];
-      for (var shift in defaultShifts) {
-        _shiftsBox.add(shift.toMap());
-      }
-    }
-
     setState(() {
       _shifts = _shiftsBox.values.map((e) => ShiftModel.fromMap(e)).toList();
     });
@@ -71,7 +59,10 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Assign New Shift', style: TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold)),
+          title: const Text(
+            'Assign New Shift',
+            style: TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
             child: Form(
               key: _formKey,
@@ -134,7 +125,10 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
               child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C4A3E), foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C4A3E),
+                foregroundColor: Colors.white,
+              ),
               onPressed: () {
                 if (_formKey.currentState != null && _formKey.currentState!.validate()) {
                   final newShift = ShiftModel(
@@ -147,10 +141,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                     officerCount: int.tryParse(_countController.text) ?? 1,
                   );
 
-                  // Save to local storage
                   _saveShift(newShift);
 
-                  // Clear controllers and close dialog
                   _shiftNameController.clear();
                   _timeRangeController.clear();
                   _supervisorController.clear();
@@ -168,12 +160,15 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
     );
   }
 
-void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
+  void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(shift.shiftName, style: const TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold)),
+          title: Text(
+            shift.shiftName,
+            style: const TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,31 +178,40 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
                 _detailRow("Location:", shift.assignedLocation),
                 _detailRow("Status:", shift.status),
                 const Divider(height: 24),
-                const Text("Supervisor Details", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E))),
+                const Text(
+                  "Supervisor Details",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
+                ),
                 const SizedBox(height: 8),
                 _detailRow("Name:", shift.supervisorName),
                 _detailRow("Role:", shift.supervisorRole),
                 _detailRow("Phone:", shift.supervisorPhone),
                 _detailRow("Email:", shift.supervisorEmail),
                 const Divider(height: 24),
-                Text("Assigned Personnel (${shift.assignedGuards.length} Officers)", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E))),
+                Text(
+                  "Assigned Personnel (${shift.assignedGuards.length} Officers)",
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
+                ),
                 const SizedBox(height: 8),
                 ...shift.assignedGuards.map((guard) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.fiber_manual_record, size: 8, color: Color(0xFF2C4A3E)),
-                      const SizedBox(width: 8),
-                      Text(guard, style: const TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                )),
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.fiber_manual_record, size: 8, color: Color(0xFF2C4A3E)),
+                          const SizedBox(width: 8),
+                          Text(guard, style: const TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    )),
               ],
             ),
           ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C4A3E), foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C4A3E),
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
               child: const Text('Close'),
             ),
@@ -223,8 +227,19 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 100, child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 13))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 13),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
+            ),
+          ),
         ],
       ),
     );
@@ -232,6 +247,9 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate total officers dynamically from loaded shifts
+    final totalOfficers = _shifts.fold<int>(0, (sum, shift) => sum + shift.officerCount);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
@@ -277,11 +295,11 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatTile("TOTAL STAFF", "${_shifts.length * 5} Officers"),
+                _buildStatTile("TOTAL STAFF", "$totalOfficers Officers"),
                 Container(height: 30, width: 1, color: Colors.grey.shade300),
                 _buildStatTile("TOTAL SHIFTS", "${_shifts.length} Active"),
                 Container(height: 30, width: 1, color: Colors.grey.shade300),
-                _buildStatTile("ATTENDANCE", "100%"),
+                _buildStatTile("ATTENDANCE", _shifts.isEmpty ? "0%" : "100%"),
               ],
             ),
           ),
@@ -291,26 +309,51 @@ void _showShiftDetailDialog(BuildContext context, ShiftModel shift) {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Shift Schedule Overview", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF334155))),
+                const Text(
+                  "Shift Schedule Overview",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF334155)),
+                ),
                 ElevatedButton.icon(
                   onPressed: () => _showAssignShiftDialog(context),
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Assign Shift'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7A1F2D), foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7A1F2D),
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _shifts.length,
-              itemBuilder: (context, index) {
-                return RosterCard(
-                shift: _shifts[index],
-                onContactPressed: () => _showShiftDetailDialog(context, _shifts[index]),
-              );
-              },
-            ),
+            child: _shifts.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.assignment_outlined, size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No shifts assigned yet',
+                          style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Click "Assign Shift" or sync from API',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _shifts.length,
+                    itemBuilder: (context, index) {
+                      return RosterCard(
+                        shift: _shifts[index],
+                        onContactPressed: () => _showShiftDetailDialog(context, _shifts[index]),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
