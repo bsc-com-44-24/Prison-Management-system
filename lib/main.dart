@@ -43,7 +43,7 @@ class PrisonApp extends StatelessWidget {
       title: 'Prison Management System',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      initialRoute: '/',
+      initialRoute: '/release-test',
       routes: {
         '/': (_) => const SplashScreen(),
         '/login': (_) => const LoginScreen(),

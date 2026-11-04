@@ -5,56 +5,51 @@ class ReleaseBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF344B3B);
+    const grey = Color(0xFF9AA3B2);
+
+    Widget item(IconData icon, String label) {
+      return Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: grey, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: grey,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, -3),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+        top: false,
+        child: SizedBox(
+          height: 58,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home_outlined, 'Home'),
-              _buildNavItem(Icons.people_outline, 'Inmates'),
-              _buildNavItem(Icons.location_on_outlined, 'Tracking'),
-              _buildNavItem(Icons.person_outline, 'Profile'),
+              item(Icons.home_outlined, 'Home'),
+              item(Icons.groups_outlined, 'Inmates'),
+              item(Icons.location_on_outlined, 'Tracking'),
+              item(Icons.person_outline, 'Profile'),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: Colors.grey.shade500,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
