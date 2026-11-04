@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import '../../Inmate_management/screens/new_inmate_screen.dart';
 import '../../visitor_management/screens/visitor_list_screen.dart';
 import '../../tracking/screens/tracking_screen.dart';
+import '../../release_management/screens/release_management_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, Object?> user;
@@ -19,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _tab = 0;
 
-  // Placeholder statistics. These can be connected to real data later.
   final int _totalInmates = 0;
   final int _onLeave = 0;
   final int _upcomingReleases = 0;
@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Open the New Inmate registration form.
+  // Open New Inmate registration.
   Future<void> _openInmates() async {
     await Navigator.push(
       context,
@@ -59,12 +59,25 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _tab = 0);
   }
 
-  // Open the existing Tracking screen.
+  // Open Tracking.
   Future<void> _openTracking() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => const TrackingScreen(),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() => _tab = 0);
+  }
+
+  // Open Release Management.
+  Future<void> _openReleaseManagement() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ReleaseManagementScreen(),
       ),
     );
 
@@ -83,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Show the logged-in user's profile.
+  // Show user profile.
   void _showProfile() {
     final u = widget.user;
 
@@ -151,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
 
       case 'Release\nMgmt':
-        _soon('Release Management');
+        _openReleaseManagement();
         break;
 
       case 'Notifications':
