@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dashboard_screen.dart';
 // Import your RegisterScreen file here if it is not already in this file.
-// Example:
-// import 'register_screen.dart';
+import 'register_screen.dart'; // Adjust the path as necessary.
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -74,9 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Do not navigate to the dashboard here until real authentication is wired.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Connect your authentication service before signing in.',
-        ),
+        content: Text('Connect your authentication service before signing in.'),
       ),
     );
   }
@@ -121,8 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Image.asset(
                                   'assets/images/logo.png',
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(
+                                  errorBuilder: (_, __, ___) => const Icon(
                                     Icons.security,
                                     size: 40,
                                     color: Colors.white,
@@ -183,12 +179,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 14,
                           ),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
                           focusedBorder: const UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: deepGreen, width: 2),
+                            borderSide: BorderSide(color: deepGreen, width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -196,8 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             return 'Please enter your email';
                           }
                           if (!value.trim().toLowerCase().endsWith(
-                                '@prisons.gov.mw',
-                              )) {
+                            '@prisons.gov.mw',
+                          )) {
                             return 'Only @prisons.gov.mw emails are allowed';
                           }
                           return null;
@@ -220,12 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 14,
                           ),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
                           focusedBorder: const UnderlineInputBorder(
-                            borderSide:
-                                BorderSide(color: deepGreen, width: 2),
+                            borderSide: BorderSide(color: deepGreen, width: 2),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
