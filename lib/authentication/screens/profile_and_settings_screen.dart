@@ -1,119 +1,25 @@
 import 'package:flutter/material.dart';
+import 'dashboard_screen.dart'; // Import to allow navigation back to Dashboard
+import 'logout_screen.dart'; // Import your separated dialog here
 
 class ProfileSettingsScreen extends StatelessWidget {
-  const ProfileSettingsScreen({Key? key}) : super(key: key);
+  // Accept the dynamic user map from the login/dashboard flow
+  final Map<String, dynamic>? user;
+
+  const ProfileSettingsScreen({Key? key, this.user}) : super(key: key);
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
   static const String fontFamily = 'Roboto';
 
-  // Function to show the Sign Out confirmation popup dialog matching design[cite: 10]
-  void _showSignOutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          contentPadding: const EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: maroonButton.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.logout,
-                  color: maroonButton,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Sign Out',
-                style: TextStyle(
-                  fontFamily: fontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Are you sure you want to sign out of\nyour account?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: fontFamily,
-                  fontSize: 13,
-                  color: Colors.black54,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Perform actual sign out logic & route back to login
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: maroonButton,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Yes, Sign Out',
-                    style: TextStyle(
-                      fontFamily: fontFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.shade300),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontFamily: fontFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Extract dynamic email and role, with clean fallback defaults
+    final String email = user?['email'] ?? 'email@prisons.gov.mw';
+    final String role = user?['role'] ?? 'System Administrator';
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F6F4),
       appBar: AppBar(
         backgroundColor: deepGreen,
         elevation: 0,
@@ -140,9 +46,10 @@ class ProfileSettingsScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Top Profile Header Card with Dynamic Data
             Container(
               color: deepGreen,
-              padding: const EdgeInsets.only(bottom: 30),
+              padding: const EdgeInsets.only(bottom: 24),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 padding: const EdgeInsets.all(16),
@@ -180,9 +87,10 @@ class ProfileSettingsScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'email@prisons.gov.mw',
-                          style: TextStyle(
+                        // Dynamic Email Display
+                        Text(
+                          email,
+                          style: const TextStyle(
                             fontFamily: fontFamily,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -196,9 +104,9 @@ class ProfileSettingsScreen extends StatelessWidget {
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'System Administrator',
-                            style: TextStyle(
+                          child: Text(
+                            role,
+                            style: const TextStyle(
                               fontFamily: fontFamily,
                               fontSize: 10,
                               color: Colors.grey,
@@ -211,21 +119,41 @@ class ProfileSettingsScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            // Settings Options List
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _buildSettingsOption(Icons.person_outline, 'Edit Profile'),
-                  _buildSettingsOption(Icons.lock_outline, 'Change Password'),
-                  _buildSettingsOption(Icons.notifications_none, 'Notification Settings'),
-                  _buildSettingsOption(Icons.settings_outlined, 'App Settings'),
-                  _buildSettingsOption(Icons.help_outline, 'Help & Support'),
-                  const SizedBox(height: 20),
-                  SizedBox(
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSettingsOption(Icons.person_outline, 'Edit Profile', showDivider: true),
+                        _buildSettingsOption(Icons.lock_outline, 'Change Password', showDivider: true),
+                        _buildSettingsOption(Icons.notifications_none, 'Notification Settings', showDivider: true),
+                        _buildSettingsOption(Icons.settings_outlined, 'App Settings', showDivider: true),
+                        _buildSettingsOption(Icons.help_outline, 'Help & Support', showDivider: false),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sign Out Button Card invoking the imported dialog
+                  Container(
                     width: double.infinity,
                     height: 50,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showSignOutDialog(context),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: TextButton.icon(
+                      onPressed: () => SignOutDialog.show(context),
                       icon: const Icon(Icons.logout, color: maroonButton, size: 18),
                       label: const Text(
                         'Sign Out',
@@ -236,10 +164,9 @@ class ProfileSettingsScreen extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: maroonButton),
+                      style: TextButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
@@ -250,31 +177,52 @@ class ProfileSettingsScreen extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 3,
+        selectedItemColor: deepGreen,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Inmates'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+        ],
+        onTap: (index) {
+          // If 'Home' (index 0) is tapped, navigate to DashboardScreen carrying user data
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DashboardScreen(user: user ?? {}),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildSettingsOption(IconData icon, String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.black54, size: 20),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontFamily: fontFamily,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+  Widget _buildSettingsOption(IconData icon, String title, {bool showDivider = true}) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: Colors.black54, size: 20),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontFamily: fontFamily,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
           ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+          onTap: () {},
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-        onTap: () {},
-      ),
+        if (showDivider)
+          Divider(height: 1, thickness: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16),
+      ],
     );
   }
 }

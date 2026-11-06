@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dashboard_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -13,12 +14,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isRegistering = false;
 
-  // Theme Colors matching Login Screen
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
 
@@ -32,14 +34,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Creating account...'),
-          backgroundColor: deepGreen,
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate() || _isRegistering) return;
+
+    setState(() => _isRegistering = true);
+
+    try {
+      final Map<String, Object?> newUser = {
+        'full_name': _fullNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'officer_id': _idNumberController.text.trim(),
+        'phone': '',
+      };
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DashboardScreen(user: newUser),
         ),
       );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $error'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isRegistering = false);
     }
   }
 
@@ -52,160 +76,135 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         backgroundColor: deepGreen,
         elevation: 0,
+        // Standard back button returning to the previous screen (login)
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Prison Management...',
-          style: TextStyle(color: Colors.white, fontSize: 18),
+          'Prison Management System',
+          style: TextStyle(color: Colors.white, fontSize: 16),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horiz, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+        // Removed actions parameter to get rid of double arrows and dots on the top right
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Top Header Section with Deep Green Background & Curved Bottom
               ClipPath(
-                clipper: HeaderClipper(),
+                clipper: RegisterHeaderClipper(),
                 child: Container(
                   width: double.infinity,
                   color: deepGreen,
                   padding: EdgeInsets.symmetric(
-                    horizontal: 20.0,
+                    horizontal: 20,
                     vertical: size.height * 0.02,
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Logo placed on the far left so it doesn't overlap text[cite: 3]
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          double logoSize = constraints.maxWidth * 0.16;
-                          if (logoSize > 65) logoSize = 65;
-                          if (logoSize < 45) logoSize = 45;
-
-                          return Container(
-                            height: logoSize,
-                            width: logoSize,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: deepGreen, // Background color #344B3B
-                            ),
-                            child: ClipOval(
-                              child: Padding(
-                                padding: const EdgeInsets.all(2.0),
-                                child: Image.asset(
-                                  'assets/logo.png', // Update with your logo path
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.security,
-                                      size: 30,
-                                      color: Colors.white,
-                                    );
-                                  },
-                                ),
+                      // Centered Logo Container with asset check
+                      Container(
+                        height: 60,
+                        width: 60,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: deepGreen,
+                        ),
+                        child: ClipOval(
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Image.asset(
+                              'assets/images/loggg.jpg',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                Icons.security,
+                                size: 30,
+                                color: Colors.white,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      const Center(
-                        child: Text(
-                          'Create account',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const Text(
+                        'Create account',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Center(
-                        child: Text(
-                          'Register to have access to the system',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
-                        ),
+                      const Text(
+                        'Register to have access to the system',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       SizedBox(height: size.height * 0.05),
                     ],
                   ),
                 ),
               ),
-
-              // Form Section with Custom Padding
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Full Name Field
                       _buildTextField(
                         controller: _fullNameController,
                         label: 'Full Name',
+                        prefixIcon: Icons.person_outline,
                         validatorMsg: 'Please enter your full name',
                       ),
                       const SizedBox(height: 16),
-
-                      // Email Field with Strict @prisons.gov.mw Validation
                       _buildTextField(
                         controller: _emailController,
                         label: 'Email',
+                        prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter your email';
                           }
-                          if (!value.trim().toLowerCase().endsWith('@prisons.gov.mw')) {
+                          if (!value.trim().toLowerCase().endsWith(
+                                '@prisons.gov.mw',
+                              )) {
                             return 'Only @prisons.gov.mw emails are allowed';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // ID Number Field
                       _buildTextField(
                         controller: _idNumberController,
                         label: 'ID Number',
+                        prefixIcon: Icons.badge_outlined,
                         validatorMsg: 'Please enter your ID number',
                       ),
                       const SizedBox(height: 16),
-
-                      // Password Field
                       _buildTextField(
                         controller: _passwordController,
                         label: 'Password',
+                        prefixIcon: Icons.lock_outline,
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                             size: 20,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -218,23 +217,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Confirm Password Field
                       _buildTextField(
                         controller: _confirmPasswordController,
                         label: 'Confirm password',
+                        prefixIcon: Icons.lock_outline,
                         obscureText: _obscureConfirmPassword,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                             size: 20,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
+                          onPressed: () => setState(
+                            () => _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -247,29 +246,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       SizedBox(height: size.height * 0.04),
-
-                      // Maroon Register/Create Button
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: _handleRegister,
+                          onPressed: _isRegistering ? null : _handleRegister,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: maroonButton,
                             foregroundColor: Colors.white,
+                            disabledBackgroundColor: maroonButton.withOpacity(
+                              0.6,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Create',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                          child: _isRegistering
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Create',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -284,10 +293,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Reusable padded Input Field Widget matching design constraints
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
+    required IconData prefixIcon,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
@@ -302,7 +311,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        prefixIcon: Icon(prefixIcon, color: Colors.grey.shade600, size: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         filled: true,
         fillColor: Colors.grey.shade50,
         suffixIcon: suffixIcon,
@@ -334,11 +347,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 }
 
-// Curved clipper matching the style of the app headers
-class HeaderClipper extends CustomClipper<Path> {
+class RegisterHeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    Path path = Path();
+    final path = Path();
     path.lineTo(0, size.height - 30);
     path.quadraticBezierTo(
       size.width / 2,
