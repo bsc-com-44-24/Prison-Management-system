@@ -6,6 +6,9 @@ import '../../Inmate_management/screens/new_inmate_screen.dart';
 import '../../visitor_management/screens/visitor_list_screen.dart';
 import '../../tracking/screens/tracking_screen.dart';
 import '../../release_management/screens/release_management_screen.dart';
+// TODO: Update this import path to point to your actual Profile & Settings screen file
+import 'profile_and_settings_screen.dart';
+import 'menu_screen.dart'; 
 
 /// Main dashboard shown after a successful login.
 ///
@@ -22,7 +25,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _selectedIndex = 0;
 
   // These are placeholders until the dashboard is connected to your database.
   final int _totalInmates = 0;
@@ -51,7 +53,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (!mounted) return;
-    setState(() => _selectedIndex = 0);
   }
 
   void _openInmates() => _openScreen(const NewInmateScreen());
@@ -63,69 +64,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openReleaseManagement() =>
       _openScreen(const ReleaseManagementScreen());
 
+  void _openProfileSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ProfileSettingsScreen(),
+      ),
+    );
+  }
+
   void _logout() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
-    );
-  }
-
-  void _showProfile() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircleAvatar(
-              radius: 32,
-              backgroundColor: deepGreen,
-              child: Icon(Icons.person, color: Colors.white, size: 36),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _fullName,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontFamily,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(_email),
-            if (widget.user['officer_id'] != null ||
-                widget.user['phone'] != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'ID: ${widget.user['officer_id'] ?? 'N/A'}'
-                '  •  ${widget.user['phone'] ?? 'N/A'}',
-                textAlign: TextAlign.center,
-              ),
-            ],
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: maroonButton,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.pop(sheetContext);
-                  _logout();
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Sign Out'),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -145,7 +97,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         break;
       case 'Rehabilitation':
       case 'Duty Roster':
-      case 'Notifications':
         _showComingSoon(action);
         break;
       default:
@@ -158,7 +109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     switch (item) {
       case 'Dashboard':
-        setState(() => _selectedIndex = 0);
         break;
       case 'Inmates':
         _openInmates();
@@ -178,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _showComingSoon(item);
         break;
       case 'Profile & Settings':
-        _showProfile();
+        _openProfileSettings();
         break;
       case 'Sign Out':
         _logout();
@@ -277,202 +227,142 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
 
       body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Green dashboard header.
-              Container(
-                color: deepGreen,
-                padding: const EdgeInsets.fromLTRB(12, 8, 16, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Unified Green dashboard header and clipped statistic cards section matching design.
+                ClipPath(
+                  clipper: HeaderClipper(),
+                  child: Container(
+                    width: double.infinity,
+                    color: deepGreen,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 45),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white),
-                          onPressed: () =>
-                              _scaffoldKey.currentState?.openDrawer(),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.menu, color: Colors.white),
+                              onPressed: () =>
+                                  _scaffoldKey.currentState?.openDrawer(),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                              ),
+                              onPressed: () => _showComingSoon('Notifications'),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.person_outline,
+                                color: Colors.white,
+                              ),
+                              onPressed: _openProfileSettings, // Opens Profile & Settings screen
+                            ),
+                          ],
                         ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.notifications_outlined,
-                            color: Colors.white,
+                        const SizedBox(height: 4),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            'Malawi prisons services',
+                            style: TextStyle(
+                              fontFamily: fontFamily,
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                          onPressed: () => _showComingSoon('Notifications'),
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.person_outline,
-                            color: Colors.white,
-                          ),
-                          onPressed: _showProfile,
+                        const SizedBox(height: 20),
+                        GridView.count(
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.6,
+                          children: [
+                            _statCard(
+                              'Total Inmates',
+                              '$_totalInmates',
+                              '0.2%',
+                              Icons.person_outline,
+                            ),
+                            _statCard(
+                              'On Leave',
+                              '$_onLeave',
+                              'active',
+                              Icons.verified_user_outlined,
+                            ),
+                            _statCard(
+                              'Upcoming\nReleases',
+                              '$_upcomingReleases',
+                              'This week',
+                              Icons.event_note,
+                            ),
+                            _statCard(
+                              "Today's Visitors",
+                              '$_todaysVisitors',
+                              'scheduled',
+                              Icons.groups_outlined,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        'Malawi Prisons Service',
+                  ),
+                ),
+
+                // Quick actions.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Quick Actions',
                         style: TextStyle(
                           fontFamily: fontFamily,
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'Welcome, $_fullName',
-                        style: const TextStyle(
-                          fontFamily: fontFamily,
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Statistics cards.
-              ClipPath(
-                clipper: HeaderClipper(),
-                child: Container(
-                  color: deepGreen,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.6,
-                    children: [
-                      _statCard(
-                        'Total Inmates',
-                        '$_totalInmates',
-                        '+0.2%',
-                        Icons.person_outline,
-                      ),
-                      _statCard(
-                        'On Leave',
-                        '$_onLeave',
-                        'active',
-                        Icons.verified_user_outlined,
-                      ),
-                      _statCard(
-                        'Upcoming Releases',
-                        '$_upcomingReleases',
-                        'This week',
-                        Icons.event_note,
-                      ),
-                      _statCard(
-                        "Today's Visitors",
-                        '$_todaysVisitors',
-                        'scheduled',
-                        Icons.groups_outlined,
+                      const SizedBox(height: 16),
+                      GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1,
+                        children: [
+                          for (final action in actions)
+                            _quickAction(action.$1, action.$2),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              // Quick actions.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Quick Actions',
-                      style: TextStyle(
-                        fontFamily: fontFamily,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1,
-                      children: [
-                        for (final action in actions)
-                          _quickAction(action.$1, action.$2),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
-
-      // Bottom navigation.
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedItemColor: deepGreen,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              setState(() => _selectedIndex = 0);
-              break;
-            case 1:
-              _openInmates();
-              break;
-            case 2:
-              _openTracking();
-              break;
-            case 3:
-              setState(() => _selectedIndex = 3);
-              _showProfile();
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Inmates',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            label: 'Tracking',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
 
   Widget _drawerItem(IconData icon, String title) {
-    final selected = title == 'Dashboard' && _selectedIndex == 0;
+    final selected = title == 'Dashboard';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -528,6 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontFamily: fontFamily,
                     fontSize: 12,
                     color: Colors.grey.shade600,
+                    height: 1.1,
                   ),
                 ),
               ),
@@ -616,17 +507,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-/// Curved lower edge of the statistics header.
+/// Smooth wave clipper that matches the exact design curve at the bottom of the header.
 class HeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0, size.height - 30);
+    path.lineTo(0, size.height - 35);
     path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 15,
+      size.width * 0.25,
+      size.height - 55,
+      size.width * 0.5,
+      size.height - 25,
+    );
+    path.quadraticBezierTo(
+      size.width * 0.75,
+      size.height + 5,
       size.width,
-      size.height - 30,
+      size.height - 20,
     );
     path.lineTo(size.width, 0);
     path.close();

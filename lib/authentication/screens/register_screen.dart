@@ -40,10 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isRegistering = true);
 
     try {
-      // DEMO FLOW ONLY:
-      // This map passes the entered details to the dashboard.
-      // It does NOT save an account. Connect your registration API/database
-      // here, and navigate only after the server/database confirms success.
       final Map<String, Object?> newUser = {
         'full_name': _fullNameController.text.trim(),
         'email': _emailController.text.trim(),
@@ -80,24 +76,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         backgroundColor: deepGreen,
         elevation: 0,
+        // Standard back button returning to the previous screen (login)
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Prison Management...',
-          style: TextStyle(color: Colors.white, fontSize: 18),
+          'Prison Management System',
+          style: TextStyle(color: Colors.white, fontSize: 16),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horiz, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+        // Removed actions parameter to get rid of double arrows and dots on the top right
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -113,9 +101,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     vertical: size.height * 0.02,
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Same logo asset and green circular background as login.
+                      // Centered Logo Container with asset check
                       Container(
                         height: 60,
                         width: 60,
@@ -127,8 +115,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(2),
                             child: Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.contain,
+                              'assets/images/loggg.jpg',
+                              fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(
                                 Icons.security,
@@ -140,23 +128,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Center(
-                        child: Text(
-                          'Create account',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const Text(
+                        'Create account',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Center(
-                        child: Text(
-                          'Register to have access to the system',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 13),
-                        ),
+                      const Text(
+                        'Register to have access to the system',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       SizedBox(height: size.height * 0.05),
                     ],
@@ -176,12 +160,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildTextField(
                         controller: _fullNameController,
                         label: 'Full Name',
+                        prefixIcon: Icons.person_outline,
                         validatorMsg: 'Please enter your full name',
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _emailController,
                         label: 'Email',
+                        prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -199,12 +185,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildTextField(
                         controller: _idNumberController,
                         label: 'ID Number',
+                        prefixIcon: Icons.badge_outlined,
                         validatorMsg: 'Please enter your ID number',
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _passwordController,
                         label: 'Password',
+                        prefixIcon: Icons.lock_outline,
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -232,6 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildTextField(
                         controller: _confirmPasswordController,
                         label: 'Confirm password',
+                        prefixIcon: Icons.lock_outline,
                         obscureText: _obscureConfirmPassword,
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -307,6 +296,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
+    required IconData prefixIcon,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
@@ -321,6 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+        prefixIcon: Icon(prefixIcon, color: Colors.grey.shade600, size: 20),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -356,7 +347,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 }
 
-// A distinct name prevents conflicts with a HeaderClipper in another file.
 class RegisterHeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

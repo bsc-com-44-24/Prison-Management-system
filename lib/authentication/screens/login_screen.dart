@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/images/logo.png',
+                                  'assets/images/loggg.jpg',
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => const Icon(
                                     Icons.security,

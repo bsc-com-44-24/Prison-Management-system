@@ -39,21 +39,32 @@ class PrisonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Prison Management System',
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
-      initialRoute: '/release-test',
-      routes: {
-        '/': (_) => const SplashScreen(),
-        '/login': (_) => const LoginScreen(),
-        '/register': (_) => const RegisterScreen(),
-        '/forgot': (_) => const ForgotPasswordScreen(),
-        '/home': (_) => const DashboardScreen(),
-        '/inmates': (_) => const InmateListScreen(),
-        '/visitors': (_) => const VisitorListScreen(),
-        '/release-test': (_) => const ReleaseManagementScreen(),
+ return MaterialApp(
+  title: 'Prison Management System',
+  debugShowCheckedModeBanner: false,
+  theme: buildTheme(),
+
+  initialRoute: '/login',
+
+  routes: {
+    '/': (_) => const SplashScreen(),
+    '/login': (_) => const LoginScreen(),
+    '/register': (_) => const RegisterScreen(),
+    '/forgot': (_) => const ForgotPasswordScreen(),
+
+    '/home': (_) => DashboardScreen(
+      user: const {
+        'full_name': 'Test Officer',
+        'email': 'officer@prisons.gov.mw',
+        'officer_id': 'TEST001',
+        'phone': '',
       },
-    );
+    ),
+
+    '/inmates': (_) => const InmateListScreen(),
+    '/visitors': (_) => const VisitorListScreen(),
+    '/release-test': (_) => const ReleaseManagementScreen(),
+  },
+);
   }
 }
