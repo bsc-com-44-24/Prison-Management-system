@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: logoSize,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: deepGreen, // Background color behind logo
+                              color: deepGreen,
                             ),
                             child: ClipOval(
                               child: Padding(
@@ -266,7 +267,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, '/register');
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                );
                               },
                               child: const Text(
                                 'Create account',
@@ -285,22 +289,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text("Don't have an account?"),
-                  TextButton(
-                    onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const RegisterScreen()),
-                    ),
-                    child: const Text('Sign up',
-                        style: TextStyle(color: kGreen, fontSize: 16)),
-                  ),
-                ]),
-                const SizedBox(height: 24),
-              ]),
-            ),
               ),
             ],
           ),
