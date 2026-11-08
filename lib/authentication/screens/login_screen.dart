@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
 
+import 'dashboard_screen.dart';
+// Import your RegisterScreen file here if it is not already in this file.
+import 'register_screen.dart'; // Adjust the path as necessary.
+
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -12,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _rememberMe = false;
   bool _obscurePassword = true;
 
@@ -26,11 +31,52 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleSignIn() {
-    if (_formKey.currentState!.validate()) {
-      // Navigate to dashboard or main app route on successful validation
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    }
+  /// Call this method ONLY after your real authentication succeeds.
+  ///
+  /// Replace the illustrative user map with the user record returned by
+  /// your database/API. Do not use form validation alone as authentication.
+  void _openDashboard(Map<String, Object?> authenticatedUser) {
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DashboardScreen(user: authenticatedUser),
+      ),
+    );
+  }
+
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    // TODO: Run your existing database/API authentication here.
+    // It must verify BOTH the email and password.
+    //
+    // Example structure (adapt to your actual authentication service):
+    //
+    // final result = await AuthService.login(
+    //   _emailController.text.trim(),
+    //   _passwordController.text,
+    // );
+    //
+    // if (result != null) {
+    //   _openDashboard({
+    //     'full_name': result['full_name'],
+    //     'email': result['email'],
+    //     'officer_id': result['officer_id'],
+    //     'phone': result['phone'],
+    //   });
+    // } else {
+    //   show an invalid-credentials message.
+    // }
+
+    // The original code only validates form fields. It does not authenticate.
+    // Do not navigate to the dashboard here until real authentication is wired.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Connect your authentication service before signing in.'),
+      ),
+    );
   }
 
   @override
@@ -49,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   color: deepGreen,
                   padding: EdgeInsets.symmetric(
-                    horizontal: 24.0,
+                    horizontal: 24,
                     vertical: size.height * 0.04,
                   ),
                   child: Column(
@@ -69,17 +115,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: ClipOval(
                               child: Padding(
-                                padding: const EdgeInsets.all(4.0),
+                                padding: const EdgeInsets.all(4),
                                 child: Image.asset(
-                                  'assets/images/logo.png',
+                                  'assets/images/loggg.jpg',
                                   fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.security,
-                                      size: 40,
-                                      color: Colors.white,
-                                    );
-                                  },
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.security,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -113,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -124,10 +168,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         cursorColor: deepGreen,
-                        style: const TextStyle(fontFamily: fontFamily, fontSize: 14),
+                        style: const TextStyle(
+                          fontFamily: fontFamily,
+                          fontSize: 14,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'email',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: fontFamily, fontSize: 14),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontFamily: fontFamily,
+                            fontSize: 14,
+                          ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
@@ -139,7 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter your email';
                           }
-                          if (!value.trim().toLowerCase().endsWith('@prisons.gov.mw')) {
+                          if (!value.trim().toLowerCase().endsWith(
+                            '@prisons.gov.mw',
+                          )) {
                             return 'Only @prisons.gov.mw emails are allowed';
                           }
                           return null;
@@ -150,10 +203,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         cursorColor: deepGreen,
-                        style: const TextStyle(fontFamily: fontFamily, fontSize: 14),
+                        style: const TextStyle(
+                          fontFamily: fontFamily,
+                          fontSize: 14,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'password',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: fontFamily, fontSize: 14),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontFamily: fontFamily,
+                            fontSize: 14,
+                          ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
@@ -162,7 +222,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: Colors.grey,
                               size: 20,
                             ),
@@ -195,9 +257,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Checkbox(
                                   value: _rememberMe,
                                   activeColor: deepGreen,
-                                  onChanged: (val) {
+                                  onChanged: (value) {
                                     setState(() {
-                                      _rememberMe = val ?? false;
+                                      _rememberMe = value ?? false;
                                     });
                                   },
                                 ),
@@ -214,7 +276,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              // Connect your forgot-password flow here.
+                            },
                             child: const Text(
                               'Forgot password?',
                               style: TextStyle(
@@ -301,7 +365,7 @@ class _LoginScreenState extends State<LoginScreen> {
 class HeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    Path path = Path();
+    final path = Path();
     path.lineTo(0, size.height - 35);
     path.quadraticBezierTo(
       size.width / 2,
@@ -315,5 +379,5 @@ class HeaderClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
