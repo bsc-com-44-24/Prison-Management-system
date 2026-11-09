@@ -35,7 +35,7 @@ class ReleaseStepCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: primaryColor.withOpacity(0.12),
+          backgroundColor: primaryColor.withValues(alpha: 0.12),
           child: Icon(icon, color: primaryColor),
         ),
         title: Text(

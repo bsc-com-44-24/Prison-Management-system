@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-import 'logout_screen.dart';
+import 'logout_screen.dart'; // Ensure this points to your SignOutDialog file path
 
 class PrisonMenuDrawer extends StatefulWidget {
   // Accept the logged-in user data map dynamically
   final Map<String, dynamic>? user;
 
-  const PrisonMenuDrawer({Key? key, this.user}) : super(key: key);
+  const PrisonMenuDrawer({super.key, this.user});
 
   @override
   State<PrisonMenuDrawer> createState() => _PrisonMenuDrawerState();
@@ -17,7 +17,7 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
   int _selectedIndex = 0;
 
   // Fully typed list to resolve compiler errors
-  final List<Map<String, dynamic>> _menuItems = [
+ final List<Map<String, dynamic>> _menuItems = [
     {'title': 'Dashboard', 'icon': Icons.dashboard},
     {'title': 'Inmates', 'icon': Icons.people},
     {'title': 'Visitors', 'icon': Icons.badge},
@@ -51,17 +51,27 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo Container using specified asset path
+                  // Logo Container using specified asset path with error handling fallback
                   Container(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/loggg.jpg'),
-                        fit: BoxFit.cover,
-                      ),
                       border: Border.all(color: Colors.white24, width: 1),
+                      color: Colors.white12,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/loggg.jpg',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.security,
+                            color: Colors.white,
+                            size: 24,
+                          );
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -159,14 +169,21 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
               ),
             ),
 
-            // Bottom Divider and Sign Out Button triggering the logout overlay dialog
+            // Bottom Divider and Sign Out Button triggering the custom SignOutDialog overlay
             const Divider(color: Colors.white24, thickness: 1, height: 1),
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  // Triggers the SignOutDialog overlay screen
+                onTap: () async {
+                  // 1. Close the drawer first so it doesn't block the dialog overlay
+                  Navigator.pop(context);
+
+                  // 2. Wait briefly for the drawer transition to finish, then open your dialog
+                  await Future.delayed(const Duration(milliseconds: 150));
+                  if (!context.mounted) return;
+
+                  // 3. Call your specific SignOutDialog overlay helper method
                   SignOutDialog.show(context);
                 },
                 child: Container(

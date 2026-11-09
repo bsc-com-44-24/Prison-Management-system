@@ -131,7 +131,7 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
-              backgroundColor: const Color(0xFF344B3B).withOpacity(0.1),
+              backgroundColor: const Color(0xFF344B3B).withValues(alpha: 0.1),
               child: const Icon(Icons.work_outline, color: Color(0xFF344B3B)),
             ),
             title: Text(
@@ -154,7 +154,7 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF344B3B).withOpacity(0.1),
+                      color: const Color(0xFF344B3B).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
