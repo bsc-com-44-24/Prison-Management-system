@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SignOutDialog extends StatelessWidget {
-  const SignOutDialog({Key? key}) : super(key: key);
+  const SignOutDialog({super.key});
 
   static const Color maroonButton = Color(0xFF7A2032);
   static const String fontFamily = 'Roboto';
@@ -32,7 +32,7 @@ class SignOutDialog extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: maroonButton.withOpacity(0.08),
+                color: maroonButton.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: const Center(

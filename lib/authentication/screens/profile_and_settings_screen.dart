@@ -6,7 +6,7 @@ class ProfileSettingsScreen extends StatelessWidget {
   // Accept the dynamic user map from the login/dashboard flow
   final Map<String, dynamic>? user;
 
-  const ProfileSettingsScreen({Key? key, this.user}) : super(key: key);
+  const ProfileSettingsScreen({super.key, this.user});
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);

@@ -6,6 +6,8 @@ import '../../Inmate_management/screens/new_inmate_screen.dart';
 import '../../visitor_management/screens/visitor_list_screen.dart';
 import '../../tracking/screens/tracking_screen.dart';
 import '../../release_management/screens/release_management_screen.dart';
+import '../../rehabilitation/screens/rehabilitation_screen.dart'; // Update path if located directly in rehabilitation folder
+import '../../staff_roster/screens/staff_roster_screen.dart';       // Update path if located directly in staff_roster folder
 // TODO: Update this import path to point to your actual Profile & Settings screen file
 import 'profile_and_settings_screen.dart';
 import 'menu_screen.dart'; 
@@ -64,6 +66,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openReleaseManagement() =>
       _openScreen(const ReleaseManagementScreen());
 
+  void _openRehabilitation() => _openScreen(const RehabilitationScreen());
+
+  void _openStaffRoster() => _openScreen(const StaffRosterScreen());
+
   void _openProfileSettings() {
     Navigator.push(
       context,
@@ -96,8 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _openReleaseManagement();
         break;
       case 'Rehabilitation':
+        _openRehabilitation();
+        break;
       case 'Duty Roster':
-        _showComingSoon(action);
+        _openStaffRoster();
         break;
       default:
         _showComingSoon(action);
@@ -116,14 +124,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'Visitors':
         _openVisitors();
         break;
+      case 'Rehabilitation':
+        _openRehabilitation();
+        break;
       case 'Tracking':
         _openTracking();
+        break;
+      case 'Staff Duty Roster':
+        _openStaffRoster();
         break;
       case 'Release Management':
         _openReleaseManagement();
         break;
-      case 'Rehabilitation':
-      case 'Staff Duty Roster':
       case 'Notifications':
         _showComingSoon(item);
         break;
@@ -367,7 +379,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       decoration: BoxDecoration(
-        color: selected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+        color: selected ? Colors.white.withValues(alpha: 0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
@@ -399,7 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -476,7 +488,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dashboard_screen.dart';
 // Import your RegisterScreen file here if it is not already in this file.
-import 'register_screen.dart'; // Adjust the path as necessary.
+// Adjust the path as necessary.
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
