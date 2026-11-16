@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../database/db_helper.dart';
 import '../models/inmate_model.dart';
@@ -242,7 +242,8 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
                         offenceCategory: selectedOffence!,
                         sentenceYears:
                             sentenceYears, // Updated sentence duration
-                        releaseDate: formattedReleaseDate, // Recalculated release date based on new sentence
+                        releaseDate:
+                            formattedReleaseDate, // Recalculated release date based on new sentence
                         status: widget.inmateToEdit?.status ?? 'Active',
                       );
 

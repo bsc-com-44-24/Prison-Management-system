@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'package:material_ui/material_ui.dart';
+import 'dashboards/system_admin_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -254,9 +254,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: maroonButton,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: maroonButton.withValues(
-                              alpha: 0.6,
-                            ),
+                            disabledBackgroundColor:
+                                maroonButton.withValues(alpha: 0.6),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),

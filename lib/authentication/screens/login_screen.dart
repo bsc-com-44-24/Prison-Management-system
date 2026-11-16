@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
-import 'dashboard_screen.dart';
-// Import your RegisterScreen file here if it is not already in this file.
-// Adjust the path as necessary.
+import 'dashboards/system_admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _rememberMe = false;
   bool _obscurePassword = true;
 
   static const Color deepGreen = Color(0xFF344B3B);
@@ -30,10 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Call this method ONLY after your real authentication succeeds.
-  ///
-  /// Replace the illustrative user map with the user record returned by
-  /// your database/API. Do not use form validation alone as authentication.
+  // Call this only after successful authentication.
   void _openDashboard(Map<String, Object?> authenticatedUser) {
     if (!mounted) return;
 
@@ -48,34 +42,22 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleSignIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // TODO: Run your existing database/API authentication here.
-    // It must verify BOTH the email and password.
-    //
-    // Example structure (adapt to your actual authentication service):
-    //
-    // final result = await AuthService.login(
-    //   _emailController.text.trim(),
-    //   _passwordController.text,
-    // );
-    //
-    // if (result != null) {
-    //   _openDashboard({
-    //     'full_name': result['full_name'],
-    //     'email': result['email'],
-    //     'officer_id': result['officer_id'],
-    //     'phone': result['phone'],
-    //   });
-    // } else {
-    //   show an invalid-credentials message.
-    // }
+    // TODO: Connect this to your Spring Boot authentication API.
+    // The backend must verify the email and password and return
+    // the authenticated user's details, role and access token.
 
-    // The original code only validates form fields. It does not authenticate.
-    // Do not navigate to the dashboard here until real authentication is wired.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Connect your authentication service before signing in.'),
+        content: Text(
+          'Connect your authentication service before signing in.',
+        ),
       ),
     );
+  }
+
+  void _handleResetPassword() {
+    // Make sure '/forgot-password' is registered in main.dart.
+    Navigator.pushNamed(context, '/forgot-password');
   }
 
   @override
@@ -102,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       LayoutBuilder(
                         builder: (context, constraints) {
                           double logoSize = constraints.maxWidth * 0.22;
+
                           if (logoSize > 90) logoSize = 90;
                           if (logoSize < 60) logoSize = 60;
 
@@ -141,7 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Sign in to continue to the\nPrison Management System',
+                        'Sign in to continue to the\n'
+                        'Prison Management System',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: fontFamily,
@@ -163,6 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
+
+                      // Email field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -179,25 +165,35 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 14,
                           ),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(
+                              color: Colors.grey.shade300,
+                            ),
                           ),
                           focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: deepGreen, width: 2),
+                            borderSide: BorderSide(
+                              color: deepGreen,
+                              width: 2,
+                            ),
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter your email';
                           }
+
                           if (!value.trim().toLowerCase().endsWith(
-                            '@prisons.gov.mw',
-                          )) {
+                                '@prisons.gov.mw',
+                              )) {
                             return 'Only @prisons.gov.mw emails are allowed';
                           }
+
                           return null;
                         },
                       ),
+
                       const SizedBox(height: 24),
+
+                      // Password field
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -214,10 +210,15 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 14,
                           ),
                           enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(
+                              color: Colors.grey.shade300,
+                            ),
                           ),
                           focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: deepGreen, width: 2),
+                            borderSide: BorderSide(
+                              color: deepGreen,
+                              width: 2,
+                            ),
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -238,113 +239,75 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
                           }
+
                           if (value.length < 6) {
                             return 'Password must be at least 6 characters';
                           }
+
                           return null;
                         },
                       ),
-                      const SizedBox(height: 20),
+
+                      SizedBox(height: size.height * 0.05),
+
+                      // Sign In and Reset Password buttons
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Checkbox(
-                                  value: _rememberMe,
-                                  activeColor: deepGreen,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _rememberMe = value ?? false;
-                                    });
-                                  },
+                          Expanded(
+                            child: SizedBox(
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed: _handleSignIn,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: maroonButton,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontFamily: fontFamily,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Remember me',
-                                style: TextStyle(
-                                  fontFamily: fontFamily,
-                                  color: Colors.black87,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              // Connect your forgot-password flow here.
-                            },
-                            child: const Text(
-                              'Forgot password?',
-                              style: TextStyle(
-                                fontFamily: fontFamily,
-                                color: Colors.black87,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SizedBox(
+                              height: 52,
+                              child: OutlinedButton(
+                                onPressed: _handleResetPassword,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: deepGreen,
+                                  side: const BorderSide(
+                                    color: deepGreen,
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Reset Password',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: fontFamily,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: size.height * 0.04),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _handleSignIn,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: maroonButton,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'sign in',
-                            style: TextStyle(
-                              fontFamily: fontFamily,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Don't have an account? ",
-                              style: TextStyle(
-                                fontFamily: fontFamily,
-                                fontSize: 13,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, '/register');
-                              },
-                              child: const Text(
-                                'Create account',
-                                style: TextStyle(
-                                  fontFamily: fontFamily,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: deepGreen,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -362,15 +325,19 @@ class HeaderClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
+
     path.lineTo(0, size.height - 35);
+
     path.quadraticBezierTo(
       size.width / 2,
       size.height + 15,
       size.width,
       size.height - 35,
     );
+
     path.lineTo(size.width, 0);
     path.close();
+
     return path;
   }
 

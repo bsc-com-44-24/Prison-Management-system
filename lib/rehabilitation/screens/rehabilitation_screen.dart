@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RehabilitationScreen extends StatefulWidget {
   const RehabilitationScreen({super.key});
@@ -68,9 +68,8 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
                       child: Text(
                         'Programs',
                         style: TextStyle(
-                          color: _selectedTab == 0
-                              ? Colors.white
-                              : Colors.black87,
+                          color:
+                              _selectedTab == 0 ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -93,9 +92,8 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
                       child: Text(
                         'Attendance',
                         style: TextStyle(
-                          color: _selectedTab == 1
-                              ? Colors.white
-                              : Colors.black87,
+                          color:
+                              _selectedTab == 1 ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

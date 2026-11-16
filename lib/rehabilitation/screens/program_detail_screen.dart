@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'assign_inmate_screen.dart';
 
@@ -67,40 +67,39 @@ class ProgramDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child:
-                  ElevatedButton.styleFrom(
-                    backgroundColor: const Color(
-                      0xFF7A1F2D,
-                    ), // Burgundy action button
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ).wrap(
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7A1F2D),
-                        foregroundColor: Colors.white,
+              child: ElevatedButton.styleFrom(
+                backgroundColor: const Color(
+                  0xFF7A1F2D,
+                ), // Burgundy action button
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ).wrap(
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7A1F2D),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    // Navigate to selection screen to pick an inmate from database
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            AssignInmateScreen(programTitle: programTitle),
                       ),
-                      onPressed: () {
-                        // Navigate to selection screen to pick an inmate from database
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                AssignInmateScreen(programTitle: programTitle),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Assign Inmate to Program',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Assign Inmate to Program',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
+              ),
             ),
           ],
         ),

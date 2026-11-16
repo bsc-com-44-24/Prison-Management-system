@@ -27,6 +27,8 @@ dependencies:
   path: ^1.9.1
   crypto: ^3.0.3
 
+  material_ui: any
+  http: ^1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

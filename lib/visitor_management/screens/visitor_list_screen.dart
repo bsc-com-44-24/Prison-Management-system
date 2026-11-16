@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/visitor.dart';
 import '../services/visitor_database.dart';
 import 'visitor_details_screen.dart';
-
 
 class VisitorListScreen extends StatefulWidget {
   const VisitorListScreen({super.key});
@@ -163,7 +162,6 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F4),
-
       appBar: AppBar(
         backgroundColor: const Color(0xFF344B3B),
         elevation: 0,
@@ -203,7 +201,6 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
           ),
         ),
       ),
-
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(),
@@ -228,12 +225,10 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-
                         onTap: () => _openDetailsWindow(
                           context,
                           visitor,
                         ),
-
                         child: ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: Color(0xFFE8EFEA),
@@ -242,16 +237,13 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                               color: Color(0xFF344B3B),
                             ),
                           ),
-
                           title: Text(
                             visitor.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           subtitle: Text(visitor.relationship),
-
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -283,29 +275,24 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                     );
                   },
                 ),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         currentIndex: 0,
         selectedItemColor: Colors.grey,
         unselectedItemColor: Colors.grey,
-
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.normal,
           fontSize: 11,
           color: Colors.grey,
         ),
-
         unselectedLabelStyle: const TextStyle(
           fontSize: 11,
           color: Colors.grey,
         ),
-
         showSelectedLabels: true,
         showUnselectedLabels: true,
         onTap: _handleNavigation,
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined, color: Colors.grey),
@@ -412,11 +399,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F4),
-
       appBar: AppBar(
         backgroundColor: const Color(0xFF344B3B),
         elevation: 0,
-
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -425,7 +410,6 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-
         title: const Text(
           'Record Visitor Details',
           style: TextStyle(
@@ -434,10 +418,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
             fontSize: 18,
           ),
         ),
-
         centerTitle: true,
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -452,9 +434,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextField(
               controller: _idController,
               decoration: const InputDecoration(
@@ -464,9 +444,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
@@ -477,9 +455,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextField(
               controller: _relationshipController,
               decoration: const InputDecoration(
@@ -489,9 +465,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextField(
               controller: _inmateController,
               decoration: const InputDecoration(
@@ -501,9 +475,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 12),
-
             TextField(
               controller: _purposeController,
               decoration: const InputDecoration(
@@ -513,9 +485,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 fillColor: Colors.white,
               ),
             ),
-
             const SizedBox(height: 16),
-
             const Text(
               'Are there any Checked Belongings / Items Left?',
               style: TextStyle(
@@ -524,9 +494,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 color: Color(0xFF344B3B),
               ),
             ),
-
             const SizedBox(height: 8),
-
             Row(
               children: [
                 Expanded(
@@ -539,11 +507,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                         color: Color(0xFF344B3B),
                       ),
                     ),
-
                     onPressed: () {
                       setState(() => _hasBelongings = true);
                     },
-
                     child: Text(
                       'Yes',
                       style: TextStyle(
@@ -554,9 +520,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
@@ -567,11 +531,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                         color: Color(0xFF344B3B),
                       ),
                     ),
-
                     onPressed: () {
                       setState(() => _hasBelongings = false);
                     },
-
                     child: Text(
                       'No',
                       style: TextStyle(
@@ -584,10 +546,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 ),
               ],
             ),
-
             if (_hasBelongings) ...[
               const SizedBox(height: 12),
-
               TextField(
                 controller: _belongingsController,
                 decoration: const InputDecoration(
@@ -598,13 +558,10 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                 ),
               ),
             ],
-
             const SizedBox(height: 28),
-
             SizedBox(
               width: double.infinity,
               height: 48,
-
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7A1F2D),
@@ -612,9 +569,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-
                 onPressed: _saveVisitor,
-
                 child: const Text(
                   'Save',
                   style: TextStyle(

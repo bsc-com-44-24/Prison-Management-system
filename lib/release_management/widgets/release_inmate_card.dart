@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../Inmate_management/models/inmate_model.dart';
 
 class ReleaseInmateCard extends StatelessWidget {
@@ -24,21 +24,17 @@ class ReleaseInmateCard extends StatelessWidget {
     final daysRemaining = releaseDate == null
         ? null
         : DateTime(
-                releaseDate.year,
-                releaseDate.month,
-                releaseDate.day,
-              )
-              .difference(DateTime(today.year, today.month, today.day))
-              .inDays;
+            releaseDate.year,
+            releaseDate.month,
+            releaseDate.day,
+          ).difference(DateTime(today.year, today.month, today.day)).inDays;
 
     String countdown = 'Date unavailable';
     Color countdownColor = Colors.grey;
 
     if (daysRemaining != null) {
       if (daysRemaining <= 7) {
-        countdown = daysRemaining < 0
-            ? 'Date passed'
-            : 'Due Soon';
+        countdown = daysRemaining < 0 ? 'Date passed' : 'Due Soon';
         countdownColor = burgundy;
       } else {
         countdown = 'In $daysRemaining days';
@@ -80,9 +76,7 @@ class ReleaseInmateCard extends StatelessWidget {
                   size: 22,
                 ),
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,9 +89,7 @@ class ReleaseInmateCard extends StatelessWidget {
                         color: Colors.black87,
                       ),
                     ),
-
                     const SizedBox(height: 3),
-
                     Text(
                       '${inmate.id} · ${inmate.offenceCategory}',
                       style: const TextStyle(
@@ -105,9 +97,7 @@ class ReleaseInmateCard extends StatelessWidget {
                         color: Color(0xFF64748B),
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     Text(
                       'Release: ${inmate.releaseDate}',
                       style: const TextStyle(
@@ -118,9 +108,7 @@ class ReleaseInmateCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(width: 6),
-
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
