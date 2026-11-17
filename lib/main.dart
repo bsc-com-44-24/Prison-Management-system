@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+/*import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
@@ -66,5 +66,43 @@ class PrisonApp extends StatelessWidget {
     '/release-test': (_) => const ReleaseManagementScreen(),
   },
 );
+  }
+}*/
+
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'transfer/screens/transfer_request_screen.dart';
+import 'transfer/widgets/custom_bottom_nav.dart';
+import 'transfer/models/transfer_model.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive storage for local-first testing
+  await Hive.initFlutter();
+
+  runApp(const PrisonApp());
+}
+
+class PrisonApp extends StatelessWidget {
+  const PrisonApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Prison Management System - Transfer Module',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: const Color(0xFF1B2E20),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1B2E20),
+          foregroundColor: Colors.white,
+        ),
+      ),
+      // Directly target the Transfer Request screen for isolated testing
+      home: const TransferRequestScreen(),
+    );
   }
 }
