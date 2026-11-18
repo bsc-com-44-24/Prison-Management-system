@@ -29,6 +29,8 @@ class _ProgramFacilitatorDashboardScreenState
   static const Color backgroundColor = Color(0xFFF4F5F3);
 
   ProgramFacilitatorDashboardStats? stats;
+  List<Map<String, dynamic>> programmes = [];
+
   bool isLoading = true;
   String? errorMessage;
 
@@ -82,7 +84,7 @@ class _ProgramFacilitatorDashboardScreenState
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'Unable to load dashboard statistics.';
+        errorMessage = 'Unable to load dashboard information.';
         isLoading = false;
       });
     }
@@ -104,7 +106,13 @@ class _ProgramFacilitatorDashboardScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,6 +147,7 @@ class _ProgramFacilitatorDashboardScreenState
     );
   }
 
+  // Quick action design follows the System Administrator dashboard.
   Widget buildQuickAction({
     required String title,
     required String description,
@@ -149,54 +158,196 @@ class _ProgramFacilitatorDashboardScreenState
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
+        height: 155,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                color: maroon.withValues(alpha: 0.09),
-                borderRadius: BorderRadius.circular(12),
+                color: deepGreen.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(11),
               ),
-              child: Icon(icon, color: maroon, size: 24),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: deepGreen,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
+              child: Icon(
+                icon,
+                color: deepGreen,
+                size: 24,
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey.shade500,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: deepGreen,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget buildProgrammeOverview() {
+    if (programmes.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.menu_book_outlined,
+              size: 35,
+              color: Colors.grey.shade500,
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Programme records are not available yet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: deepGreen,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Available programmes will appear here when '
+              'the programme records API is connected.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: programmes.map((programme) {
+        final name = programme['name']?.toString() ??
+            programme['programmeName']?.toString() ??
+            'Unnamed Programme';
+
+        final status = programme['status']?.toString() ??
+            'Not specified';
+
+        final description =
+            programme['description']?.toString() ?? '';
+
+        final isActive = status.toLowerCase() == 'active';
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
+                  color: deepGreen.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.menu_book_outlined,
+                  color: deepGreen,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: deepGreen,
+                      ),
+                    ),
+                    if (description.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.green.withValues(alpha: 0.10)
+                            : maroon.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isActive ? Colors.green : maroon,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -293,7 +444,6 @@ class _ProgramFacilitatorDashboardScreenState
 
               const SizedBox(height: 14),
 
-              // Dynamic statistics
               if (isLoading)
                 const Center(
                   child: Padding(
@@ -328,7 +478,7 @@ class _ProgramFacilitatorDashboardScreenState
                     ],
                   ),
                 )
-              else
+              else ...[
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -360,6 +510,20 @@ class _ProgramFacilitatorDashboardScreenState
                   ],
                 ),
 
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Available Programmes',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: deepGreen,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                buildProgrammeOverview(),
+              ],
+
               const SizedBox(height: 26),
 
               const Text(
@@ -373,39 +537,42 @@ class _ProgramFacilitatorDashboardScreenState
 
               const SizedBox(height: 14),
 
-              // Exactly three quick actions
-              buildQuickAction(
-                title: 'Create Programme',
-                description: 'Create a new rehabilitation programme',
-                icon: Icons.add_circle_outline,
-                onTap: widget.onCreateProgramme ??
-                    () => showActionMessage(
-                      'Create Programme screen will open here.',
-                    ),
-              ),
-
-              const SizedBox(height: 12),
-
-              buildQuickAction(
-                title: 'Manage Participation',
-                description: 'Manage inmates enrolled in programmes',
-                icon: Icons.groups_outlined,
-                onTap: widget.onManageParticipation ??
-                    () => showActionMessage(
-                      'Manage Participation screen will open here.',
-                    ),
-              ),
-
-              const SizedBox(height: 12),
-
-              buildQuickAction(
-                title: 'Record Attendance',
-                description: 'Record attendance for programme sessions',
-                icon: Icons.fact_check_outlined,
-                onTap: widget.onRecordAttendance ??
-                    () => showActionMessage(
-                      'Record Attendance screen will open here.',
-                    ),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.05,
+                children: [
+                  buildQuickAction(
+                    title: 'Create Programme',
+                    description: 'Create a new rehabilitation programme',
+                    icon: Icons.add_circle_outline,
+                    onTap: widget.onCreateProgramme ??
+                        () => showActionMessage(
+                          'Create Programme screen will open here.',
+                        ),
+                  ),
+                  buildQuickAction(
+                    title: 'Manage Participation',
+                    description: 'Manage inmates enrolled in programmes',
+                    icon: Icons.groups_outlined,
+                    onTap: widget.onManageParticipation ??
+                        () => showActionMessage(
+                          'Manage Participation screen will open here.',
+                        ),
+                  ),
+                  buildQuickAction(
+                    title: 'Record Attendance',
+                    description: 'Record attendance for programme sessions',
+                    icon: Icons.fact_check_outlined,
+                    onTap: widget.onRecordAttendance ??
+                        () => showActionMessage(
+                          'Record Attendance screen will open here.',
+                        ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 20),

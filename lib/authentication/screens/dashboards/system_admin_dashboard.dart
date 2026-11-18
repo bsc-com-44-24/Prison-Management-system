@@ -1,6 +1,9 @@
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../../authentication/screens/login_screen.dart';
+import '../../../authentication/screens/manage_users_screen.dart';
+import '../../../authentication/screens/manage_prisons_screen.dart';
 import '../../../services/admin_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -16,7 +19,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>();
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
@@ -28,10 +32,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingStats = true;
   String? _statsError;
 
-  String get _fullName => (widget.user['full_name'] ??
-          widget.user['fullName'] ??
-          'System Administrator')
-      .toString();
+  String get _fullName =>
+      (widget.user['full_name'] ??
+              widget.user['fullName'] ??
+              'System Administrator')
+          .toString();
 
   String get _email => (widget.user['email'] ?? '').toString();
 
@@ -41,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadDashboardStats();
   }
 
-  // Fetch actual statistics from the Spring Boot backend.
+  // Fetch dashboard statistics from the backend.
   Future<void> _loadDashboardStats() async {
     setState(() {
       _isLoadingStats = true;
@@ -77,22 +82,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // Navigate to the appropriate management screen.
   void _handleQuickAction(String action) {
     switch (action) {
-      case 'Create User':
-        _showComingSoon('Create User');
-        break;
-
       case 'Manage Users':
-        _showComingSoon('Manage Users');
-        break;
-
-      case 'Roles & Permissions':
-        _showComingSoon('Roles & Permissions');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ManageUsersScreen(),
+          ),
+        );
         break;
 
       case 'Manage Prisons':
-        _showComingSoon('Manage Prisons');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ManagePrisonsScreen(),
+          ),
+        );
         break;
     }
   }
@@ -187,9 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loadDashboardStats();
         break;
 
-      case 'Create User':
       case 'Manage Users':
-      case 'Roles & Permissions':
       case 'Manage Prisons':
         _handleQuickAction(item);
         break;
@@ -277,7 +283,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             )
           else
             Text(
-              _statsError != null ? '—' : (value?.toString() ?? '—'),
+              _statsError != null
+                  ? '—'
+                  : (value?.toString() ?? '—'),
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -357,12 +365,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              8,
-              8,
-              8,
-              4,
-            ),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
             child: Row(
               children: [
                 IconButton(
@@ -405,12 +408,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              20,
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
             child: Row(
               children: [
                 const CircleAvatar(
@@ -458,12 +456,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              25,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 25),
             child: Row(
               children: [
                 Expanded(
@@ -491,12 +484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildQuickActions() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        16,
-        24,
-        16,
-        25,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -526,19 +514,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             childAspectRatio: 1.12,
             children: [
               _buildQuickAction(
-                icon: Icons.person_add_alt_1,
-                title: 'Create User',
-                description: 'Create accounts and assign system roles.',
-              ),
-              _buildQuickAction(
                 icon: Icons.manage_accounts_outlined,
                 title: 'Manage Users',
                 description: 'View and manage registered system users.',
-              ),
-              _buildQuickAction(
-                icon: Icons.admin_panel_settings_outlined,
-                title: 'Roles & Permissions',
-                description: 'Manage access levels and permissions.',
               ),
               _buildQuickAction(
                 icon: Icons.account_balance_outlined,
@@ -607,16 +585,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Dashboard',
             ),
             _buildDrawerItem(
-              Icons.person_add_alt_1,
-              'Create User',
-            ),
-            _buildDrawerItem(
               Icons.manage_accounts_outlined,
               'Manage Users',
-            ),
-            _buildDrawerItem(
-              Icons.admin_panel_settings_outlined,
-              'Roles & Permissions',
             ),
             _buildDrawerItem(
               Icons.account_balance_outlined,
@@ -650,12 +620,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _buildQuickActions(),
                 if (_statsError != null)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      16,
-                      0,
-                      16,
-                      20,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                     child: Text(
                       'Statistics could not be loaded. '
                       'Pull down to try again.',

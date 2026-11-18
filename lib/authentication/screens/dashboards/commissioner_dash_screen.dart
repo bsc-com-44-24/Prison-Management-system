@@ -1,3 +1,4 @@
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../../authentication/screens/login_screen.dart';
@@ -72,12 +73,6 @@ class _CommissionerDashboardScreenState
     );
   }
 
-  double get averageCapacity {
-    if (totalCapacity == 0) return 0;
-
-    return (totalInmates / totalCapacity) * 100;
-  }
-
   Future<void> loadDashboardData() async {
     await Future.wait([
       loadPrisons(),
@@ -86,10 +81,12 @@ class _CommissionerDashboardScreenState
   }
 
   Future<void> loadPrisons() async {
-    setState(() {
-      isLoadingPrisons = true;
-      prisonError = null;
-    });
+    if (mounted) {
+      setState(() {
+        isLoadingPrisons = true;
+        prisonError = null;
+      });
+    }
 
     try {
       final result = await apiService.getPrisons();
@@ -158,6 +155,25 @@ class _CommissionerDashboardScreenState
       (route) => false,
     );
   }
+
+  // --------------------------------------------------
+  // REGISTERED PRISONS NAVIGATION
+  // --------------------------------------------------
+
+  void openRegisteredPrisons() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisteredPrisonsScreen(
+          apiService: apiService,
+        ),
+      ),
+    );
+  }
+
+  // --------------------------------------------------
+  // HEADER
+  // --------------------------------------------------
 
   Widget buildHeader() {
     return Container(
@@ -254,7 +270,9 @@ class _CommissionerDashboardScreenState
                       minHeight: 19,
                     ),
                     child: Text(
-                      notificationCount! > 99 ? '99+' : '$notificationCount',
+                      notificationCount! > 99
+                          ? '99+'
+                          : '$notificationCount',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
@@ -270,6 +288,10 @@ class _CommissionerDashboardScreenState
       ),
     );
   }
+
+  // --------------------------------------------------
+  // WELCOME CARD
+  // --------------------------------------------------
 
   Widget buildWelcomeCard() {
     return Container(
@@ -303,235 +325,108 @@ class _CommissionerDashboardScreenState
     );
   }
 
-  Widget buildPrisonOverview() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(
+  // --------------------------------------------------
+  // REGISTERED PRISONS CARD
+  // --------------------------------------------------
+
+  Widget buildRegisteredPrisonsCard() {
+    return InkWell(
+      onTap: openRegisteredPrisons,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 52,
+              width: 52,
+              decoration: BoxDecoration(
+                color: deepGreen.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(
                 Icons.account_balance_outlined,
                 color: deepGreen,
-                size: 26,
+                size: 28,
               ),
-              SizedBox(width: 12),
-              Text(
-                'Registered Prisons',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 25),
-          if (isLoadingPrisons)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(18),
-                child: CircularProgressIndicator(
-                  color: deepGreen,
-                ),
-              ),
-            )
-          else if (prisonError != null)
-            Center(
+            ),
+            const SizedBox(width: 14),
+            Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    prisonError!,
-                    style: const TextStyle(color: Colors.red),
+                  const Text(
+                    'Registered Prisons',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                  TextButton(
-                    onPressed: loadPrisons,
-                    child: const Text('Try Again'),
-                  ),
+                  const SizedBox(height: 5),
+                  if (isLoadingPrisons)
+                    const Text(
+                      'Loading prison records...',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    )
+                  else if (prisonError != null)
+                    const Text(
+                      'Unable to load prison records',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red,
+                      ),
+                    )
+                  else
+                    Text(
+                      '$totalPrisons registered prisons',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
                 ],
               ),
-            )
-          else
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _overviewValue(
-                        totalPrisons.toString(),
-                        'Total Prisons',
-                      ),
-                    ),
-                    Container(
-                      height: 65,
-                      width: 1,
-                      color: Colors.grey.shade300,
-                    ),
-                    Expanded(
-                      child: _overviewValue(
-                        totalCapacity == 0
-                            ? '—'
-                            : '${averageCapacity.toStringAsFixed(1)}%',
-                        'National Occupancy',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: (averageCapacity / 100).clamp(0.0, 1.0),
-                    minHeight: 9,
-                    backgroundColor: Colors.grey.shade200,
-                    color: averageCapacity >= 90 ? maroon : deepGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$totalInmates inmates / $totalCapacity total capacity',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
             ),
-        ],
+            if (isLoadingPrisons)
+              const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: deepGreen,
+                ),
+              )
+            else
+              const Icon(
+                Icons.chevron_right,
+                color: deepGreen,
+                size: 27,
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _overviewValue(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: deepGreen,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.black54,
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildPrisonList() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Prison Capacity Overview',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (prisons.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              'No prison records available.',
-              style: TextStyle(color: Colors.black54),
-            ),
-          ),
-        ...prisons.map((prison) {
-          final percentage = prison.occupancyPercentage;
-          final progress = (percentage / 100).clamp(0.0, 1.0);
-
-          final Color capacityColor = percentage >= 90 ? maroon : deepGreen;
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 11),
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(13),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.account_balance,
-                      color: deepGreen,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        prison.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${percentage.toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        color: capacityColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    backgroundColor: Colors.grey.shade200,
-                    color: capacityColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${prison.currentInmates} inmates '
-                  'of ${prison.capacity} capacity',
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
+  // --------------------------------------------------
+  // QUICK ACTION CARD
+  // --------------------------------------------------
 
   Widget buildQuickAction({
     required IconData icon,
@@ -588,6 +483,10 @@ class _CommissionerDashboardScreenState
     );
   }
 
+  // --------------------------------------------------
+  // QUICK ACTIONS
+  // --------------------------------------------------
+
   Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -635,6 +534,10 @@ class _CommissionerDashboardScreenState
     );
   }
 
+  // --------------------------------------------------
+  // MAIN DASHBOARD
+  // --------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -655,18 +558,382 @@ class _CommissionerDashboardScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildWelcomeCard(),
-                      const SizedBox(height: 20),
-                      buildPrisonOverview(),
+                      const SizedBox(height: 18),
+                      buildRegisteredPrisonsCard(),
                       const SizedBox(height: 25),
                       buildQuickActions(),
-                      const SizedBox(height: 25),
-                      buildPrisonList(),
                       const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================================================
+// REGISTERED PRISONS SCREEN
+// ==================================================
+
+class RegisteredPrisonsScreen extends StatefulWidget {
+  final CommissionerApiService apiService;
+
+  const RegisteredPrisonsScreen({
+    super.key,
+    required this.apiService,
+  });
+
+  @override
+  State<RegisteredPrisonsScreen> createState() =>
+      _RegisteredPrisonsScreenState();
+}
+
+class _RegisteredPrisonsScreenState
+    extends State<RegisteredPrisonsScreen> {
+  static const Color deepGreen = Color(0xFF344B3B);
+  static const Color maroon = Color(0xFF7A2032);
+  static const Color background = Color(0xFFF4F5F3);
+
+  List<PrisonInfo> prisons = [];
+
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPrisons();
+  }
+
+  Future<void> loadPrisons() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final result = await widget.apiService.getPrisons();
+
+      if (!mounted) return;
+
+      setState(() {
+        prisons = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Unable to retrieve registered prisons.';
+      });
+    }
+  }
+
+  Widget buildPrisonCard(PrisonInfo prison) {
+    final percentage = prison.occupancyPercentage;
+    final progress = (percentage / 100).clamp(0.0, 1.0);
+
+    final remainingCapacity =
+        (prison.capacity - prison.currentInmates).clamp(0, prison.capacity);
+
+    final Color capacityColor = percentage >= 90
+        ? maroon
+        : deepGreen;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 43,
+                width: 43,
+                decoration: BoxDecoration(
+                  color: deepGreen.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.account_balance_outlined,
+                  color: deepGreen,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prison.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Prison ID: ${prison.id}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Occupancy',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                '${percentage.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: capacityColor,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 9,
+              backgroundColor: Colors.grey.shade200,
+              color: capacityColor,
+            ),
+          ),
+
+          const SizedBox(height: 17),
+
+          Row(
+            children: [
+              Expanded(
+                child: _capacityDetail(
+                  'Current Inmates',
+                  prison.currentInmates.toString(),
+                  Icons.groups_outlined,
+                ),
+              ),
+              Expanded(
+                child: _capacityDetail(
+                  'Maximum Capacity',
+                  prison.capacity.toString(),
+                  Icons.people_outline,
+                ),
+              ),
+              Expanded(
+                child: _capacityDetail(
+                  'Available Spaces',
+                  remainingCapacity.toString(),
+                  Icons.event_seat_outlined,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _capacityDetail(
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: deepGreen,
+          size: 20,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: deepGreen,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 10,
+            color: Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: background,
+      appBar: AppBar(
+        backgroundColor: deepGreen,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Registered Prisons',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: RefreshIndicator(
+        color: deepGreen,
+        onRefresh: loadPrisons,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Prison Capacity Information',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: deepGreen,
+                ),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                'View the current inmate population and available '
+                'capacity for each registered prison.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              if (isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(35),
+                    child: CircularProgressIndicator(
+                      color: deepGreen,
+                    ),
+                  ),
+                )
+              else if (errorMessage != null)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(25),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: maroon,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          errorMessage!,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: loadPrisons,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: deepGreen,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Try Again'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (prisons.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.account_balance_outlined,
+                          color: Colors.grey,
+                          size: 45,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'No registered prisons found.',
+                          style: TextStyle(
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Available Prisons',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${prisons.length} prisons',
+                      style: const TextStyle(
+                        color: deepGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 13),
+                ...prisons.map(buildPrisonCard),
+              ],
+            ],
           ),
         ),
       ),
