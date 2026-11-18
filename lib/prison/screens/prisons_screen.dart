@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prison_management_system/transfer/widgets/custom_bottom_nav.dart';
 
 class RegisteredPrisonsScreen extends StatefulWidget {
   const RegisteredPrisonsScreen({Key? key}) : super(key: key);
@@ -8,15 +9,15 @@ class RegisteredPrisonsScreen extends StatefulWidget {
 }
 
 class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
-  int _currentIndex = 0; // Highlights 'Home' tab
+  int _currentIndex = 0; // Correctly reflects that the Home/Prisons tab is active
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B2E20),
-        automaticallyImplyLeading: false, // Removed menu/logo icons
-        title: const Text('Malawi Prison System'),
+        automaticallyImplyLeading: false,
+        title: const Text('Prisons'),
         centerTitle: true,
       ),
       body: Column(
@@ -27,12 +28,6 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
-                // Clean header without leading house icon
-                Text(
-                  'Prisons',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
                 Text(
                   'select the prisons to view the inmates',
                   style: TextStyle(color: Colors.grey, fontSize: 14),
@@ -42,7 +37,7 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
           ),
           Expanded(
             child: FutureBuilder<List<dynamic>>(
-              future: fetchRegisteredPrisons(), // Replace with your actual service call
+              future: fetchRegisteredPrisons(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

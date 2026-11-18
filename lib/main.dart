@@ -72,9 +72,8 @@ class PrisonApp extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'transfer/screens/transfer_request_screen.dart';
-import 'transfer/widgets/custom_bottom_nav.dart';
-import 'transfer/models/transfer_model.dart';
+// Import your transfer approval screen
+import 'transfer/screens/transfer_approval_screen.dart'; // Adjust path if located in a different folder
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,7 +90,7 @@ class PrisonApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Prison Management System - Transfer Module',
+      title: 'Prison Management System - Approval Module',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: const Color(0xFF1B2E20),
@@ -101,8 +100,8 @@ class PrisonApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      // Directly target the Transfer Request screen for isolated testing
-      home: const TransferRequestScreen(),
+      // Directly target the Transfer Approval screen for isolated testing
+      home: const TransferApprovalScreen(),
     );
   }
 }
