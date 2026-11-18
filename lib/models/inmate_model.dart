@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class InmateModel {
   final String id;
   final String fullName;
@@ -9,7 +11,8 @@ class InmateModel {
   final String offenceCategory;
   final int sentenceYears;
   final String releaseDate;
-  final String status; // 'Active' or 'Under Review'
+  final String status; // 'Active', 'Under Review', or 'Released'
+  final List<Uint8List> photos;
 
   InmateModel({
     required this.id,
@@ -23,6 +26,7 @@ class InmateModel {
     required this.sentenceYears,
     required this.releaseDate,
     required this.status,
+    this.photos = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +41,7 @@ class InmateModel {
     'sentenceYears': sentenceYears,
     'releaseDate': releaseDate,
     'status': status,
+    'photos': photos,
   };
 
   factory InmateModel.fromJson(Map<dynamic, dynamic> json) => InmateModel(
@@ -51,5 +56,8 @@ class InmateModel {
     sentenceYears: json['sentenceYears'] ?? 0,
     releaseDate: json['releaseDate'] ?? '',
     status: json['status'] ?? 'Active',
+    photos: json['photos'] != null
+        ? List<Uint8List>.from(json['photos'])
+        : const [],
   );
 }

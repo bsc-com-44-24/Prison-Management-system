@@ -4,14 +4,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-import 'authentication/db/database_helper.dart';
 import 'authentication/theme.dart';
 import 'authentication/screens/login_screen.dart';
 import 'authentication/screens/register_screen.dart';
 import 'authentication/screens/forgot_password_screen.dart';
-import 'authentication/screens/home_screen.dart';
-
-// Correct relative paths pointing directly to your screens folder
 import 'screens/splash_screen.dart';
 import 'screens/inmate_list_screen.dart';
 
@@ -28,9 +24,6 @@ Future<void> main() async {
   await Hive.openBox('inmates_box');
   await Hive.openBox('staff_shifts_box');
 
-  // Initialize the authentication database.
-  await DatabaseHelper.instance.init();
-
   runApp(const PrisonApp());
 }
 
@@ -43,14 +36,15 @@ class PrisonApp extends StatelessWidget {
       title: 'Prison Management System',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      // Starts the full app flow from the splash screen
       initialRoute: '/',
       routes: {
         '/': (_) => const SplashScreen(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
         '/forgot': (_) => const ForgotPasswordScreen(),
-        '/home': (_) => const HomeScreen(user: {}),
-        '/inmates': (_) => const InmateListScreen(),
+        '/inmates': (_) =>
+            const InmateListScreen(currentUserRole: 'Record Officer'),
       },
     );
   }
