@@ -1,4 +1,4 @@
-/*import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart';
@@ -67,41 +67,5 @@ class PrisonApp extends StatelessWidget {
   },
 );
   }
-}*/
-
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-// Import your transfer approval screen
-import 'transfer/screens/transfer_approval_screen.dart'; // Adjust path if located in a different folder
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Hive storage for local-first testing
-  await Hive.initFlutter();
-
-  runApp(const PrisonApp());
 }
 
-class PrisonApp extends StatelessWidget {
-  const PrisonApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Prison Management System - Approval Module',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF1B2E20),
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1B2E20),
-          foregroundColor: Colors.white,
-        ),
-      ),
-      // Directly target the Transfer Approval screen for isolated testing
-      home: const TransferApprovalScreen(),
-    );
-  }
-}
