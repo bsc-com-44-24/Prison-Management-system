@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'dashboards/system_admin_dashboard.dart';
 import 'logout_screen.dart';
 
 class PrisonMenuDrawer extends StatefulWidget {

@@ -7,7 +7,7 @@ import 'authentication/db/database_helper.dart';
 import 'authentication/theme.dart';
 import 'authentication/screens/login_screen.dart';
 import 'authentication/screens/register_screen.dart';
-import 'authentication/screens/forgot_password_screen.dart';
+import 'authentication/screens/reset_password.dart';
 // Updated paths to point inside the 'dashboards' subfolder:
 import 'authentication/screens/dashboards/system_admin_dashboard.dart';
 import 'authentication/screens/dashboards/commissioner_dash_screen.dart';
@@ -49,7 +49,7 @@ class PrisonApp extends StatelessWidget {
         '/': (_) => const SplashScreen(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
-        '/forgot': (_) => const ForgotPasswordScreen(),
+        '/forgot': (_) => const ResetPasswordScreen(),
 
         // Replaced DashboardScreen with your role-specific dashboard(s):
         '/admin-dashboard': (_) => DashboardScreen(

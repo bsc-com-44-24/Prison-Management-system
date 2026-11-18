@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 
-import 'dashboards/system_admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,10 +10,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+
+  final TextEditingController _emailUsernameController =
+      TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
@@ -22,41 +25,67 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _emailUsernameController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  // Call this only after successful authentication.
-  void _openDashboard(Map<String, Object?> authenticatedUser) {
-    if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DashboardScreen(user: authenticatedUser),
-      ),
-    );
   }
 
   Future<void> _handleSignIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // TODO: Connect this to your Spring Boot authentication API.
-    // The backend must verify the email and password and return
-    // the authenticated user's details, role and access token.
+    setState(() {
+      _isLoading = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Connect your authentication service before signing in.',
+    try {
+      // TODO:
+      // Connect this section to your Spring Boot authentication API.
+      //
+      // Send:
+      // 1. email or username
+      // 2. password
+      //
+      // The backend should return:
+      // 1. authenticated user details
+      // 2. user role
+      // 3. access token
+      //
+      // Example:
+      //
+      // final authenticatedUser = await AuthApiService.login(
+      //   usernameOrEmail: _emailUsernameController.text.trim(),
+      //   password: _passwordController.text,
+      // );
+      //
+      // _openDashboard(authenticatedUser);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Authentication API has not been connected yet.',
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login failed: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _handleResetPassword() {
-    // Make sure '/forgot-password' is registered in main.dart.
     Navigator.pushNamed(context, '/forgot-password');
   }
 
@@ -148,17 +177,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const SizedBox(height: 10),
 
-                      // Email field
+                      // Email / Username field
                       TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        controller: _emailUsernameController,
+                        keyboardType: TextInputType.text,
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
                         cursorColor: deepGreen,
                         style: const TextStyle(
                           fontFamily: fontFamily,
                           fontSize: 14,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'email',
+                          hintText: 'Email / Username',
                           hintStyle: TextStyle(
                             color: Colors.grey.shade400,
                             fontFamily: fontFamily,
@@ -178,13 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email';
-                          }
-
-                          if (!value.trim().toLowerCase().endsWith(
-                                '@prisons.gov.mw',
-                              )) {
-                            return 'Only @prisons.gov.mw emails are allowed';
+                            return 'Please enter your email or username';
                           }
 
                           return null;
@@ -197,13 +222,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
                         cursorColor: deepGreen,
                         style: const TextStyle(
                           fontFamily: fontFamily,
                           fontSize: 14,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'password',
+                          hintText: 'Password',
                           hintStyle: TextStyle(
                             color: Colors.grey.shade400,
                             fontFamily: fontFamily,
@@ -240,12 +266,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             return 'Please enter your password';
                           }
 
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-
                           return null;
                         },
+                        onFieldSubmitted: (_) => _handleSignIn(),
                       ),
 
                       SizedBox(height: size.height * 0.05),
@@ -257,23 +280,36 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: SizedBox(
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: _handleSignIn,
+                                onPressed: _isLoading ? null : _handleSignIn,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: maroonButton,
                                   foregroundColor: Colors.white,
+                                  disabledBackgroundColor:
+                                      maroonButton.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontFamily: fontFamily,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Sign In',
+                                        style: TextStyle(
+                                          fontFamily: fontFamily,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -282,7 +318,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: SizedBox(
                               height: 52,
                               child: OutlinedButton(
-                                onPressed: _handleResetPassword,
+                                onPressed:
+                                    _isLoading ? null : _handleResetPassword,
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: deepGreen,
                                   side: const BorderSide(
@@ -342,5 +379,8 @@ class HeaderClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(
+    covariant CustomClipper<Path> oldClipper,
+  ) =>
+      false;
 }
