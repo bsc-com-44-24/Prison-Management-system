@@ -16,6 +16,7 @@ import 'tracking/screens/tracking_screen.dart';
 import 'rehabilitation/screens/rehabilitation_screen.dart';
 import 'release_management/screens/release_management_screen.dart';
 import 'staff_roster/screens/staff_roster_screen.dart';
+import 'rehabilitation/screens/rehabilitation_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ Future<void> main() async {
 
   await Hive.openBox('inmates_box');
   await Hive.openBox('staff_shifts_box');
+  await Hive.openBox('rehabilitation_box');
 
   // Initialize local database.
   await DatabaseHelper.instance.init();
@@ -58,6 +60,26 @@ class PrisonApp extends StatelessWidget {
         '/rehabilitation': (context) => const RehabilitationScreen(),
         '/releases': (context) => const ReleaseManagementScreen(),
         '/staff': (context) => const StaffRosterScreen(),
+
+      // Change this from RehabilitationScreen to SplashScreen (or LoginScreen)
+      home: const SplashScreen(),
+
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+        '/forgot': (_) => const ForgotPasswordScreen(),
+        '/home': (_) => DashboardScreen(
+              user: const {
+                'full_name': 'Test Officer',
+                'email': 'officer@prisons.gov.mw',
+                'officer_id': 'TEST001',
+                'phone': '',
+              },
+            ),
+        '/inmates': (_) => const InmateListScreen(),
+        '/visitors': (_) => const VisitorListScreen(),
+        '/release-test': (_) => const ReleaseManagementScreen(),
+        '/rehab': (_) => const RehabilitationScreen(),
       },
     );
   }
