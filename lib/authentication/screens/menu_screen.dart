@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import 'package:material_ui/material_ui.dart';
 import 'logout_screen.dart';
 
 class PrisonMenuDrawer extends StatefulWidget {
   // Accept the logged-in user data map dynamically
   final Map<String, dynamic>? user;
 
-  const PrisonMenuDrawer({Key? key, this.user}) : super(key: key);
+  const PrisonMenuDrawer({super.key, this.user});
 
   @override
   State<PrisonMenuDrawer> createState() => _PrisonMenuDrawerState();

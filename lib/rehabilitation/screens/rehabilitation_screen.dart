@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RehabilitationScreen extends StatefulWidget {
   const RehabilitationScreen({super.key});
@@ -51,6 +51,48 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
             color: const Color(0xFF344B3B),
             child: Row(
               children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTab = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _selectedTab == 0
+                            ? const Color(0xFF7A1F2D)
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Programs',
+                        style: TextStyle(
+                          color:
+                              _selectedTab == 0 ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTab = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _selectedTab == 1
+                            ? const Color(0xFF7A1F2D)
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Attendance',
+                        style: TextStyle(
+                          color:
+                              _selectedTab == 1 ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.bold,
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () {
@@ -221,6 +263,34 @@ class _RehabilitationScreenState extends State<RehabilitationScreen> {
               ),
             ],
           ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: CircleAvatar(
+              backgroundColor: const Color(0xFF344B3B).withValues(alpha: 0.1),
+              child: const Icon(Icons.work_outline, color: Color(0xFF344B3B)),
+            ),
+            title: Text(
+              prog['title']!,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prog['category']!,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF344B3B).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
               Container(

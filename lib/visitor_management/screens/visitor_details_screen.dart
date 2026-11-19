@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../models/visitor.dart';
 
 class VisitorDetailsScreen extends StatelessWidget {
@@ -54,13 +54,15 @@ class VisitorDetailsScreen extends StatelessWidget {
           },
           child: const Text(
             'Decline',
-            style: TextStyle(color: Color(0xFF7A1F2D), fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Color(0xFF7A1F2D), fontWeight: FontWeight.bold),
           ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF7A1F2D),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -78,9 +80,15 @@ class VisitorDetailsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  fontSize: 12)),
           const SizedBox(height: 2),
-          Text(value.isEmpty ? 'Not Provided' : value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+          Text(value.isEmpty ? 'Not Provided' : value,
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           const Divider(),
         ],
       ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../Inmate_management/models/inmate_model.dart';
 import '../services/release_database.dart';
@@ -19,8 +19,7 @@ class ReleaseProcessingScreen extends StatefulWidget {
       _ReleaseProcessingScreenState();
 }
 
-class _ReleaseProcessingScreenState
-    extends State<ReleaseProcessingScreen> {
+class _ReleaseProcessingScreenState extends State<ReleaseProcessingScreen> {
   static const Color primaryColor = Color(0xFF344B3B);
 
   late Map<String, Object?> release;
@@ -68,8 +67,7 @@ class _ReleaseProcessingScreenState
         status: newStatus,
       );
 
-      final records =
-          await ReleaseDatabase.instance.getAllReleases();
+      final records = await ReleaseDatabase.instance.getAllReleases();
 
       final updatedRecord = records.firstWhere(
         (record) => record['id'] == releaseId,
@@ -122,8 +120,7 @@ class _ReleaseProcessingScreenState
         'column': 'clearance_status',
         'newStatus': 'Completed',
         'icon': Icons.fact_check,
-        'enabled': verification == 'Completed' &&
-            clearance == 'Pending',
+        'enabled': verification == 'Completed' && clearance == 'Pending',
       },
       {
         'title': 'Approval',
@@ -133,8 +130,7 @@ class _ReleaseProcessingScreenState
         'column': 'approval_status',
         'newStatus': 'Approved',
         'icon': Icons.approval,
-        'enabled': clearance == 'Completed' &&
-            approval == 'Pending',
+        'enabled': clearance == 'Completed' && approval == 'Pending',
       },
       {
         'title': 'Release',
@@ -144,8 +140,7 @@ class _ReleaseProcessingScreenState
         'column': 'release_status',
         'newStatus': 'Released',
         'icon': Icons.door_front_door,
-        'enabled': approval == 'Approved' &&
-            releaseStatus != 'Released',
+        'enabled': approval == 'Approved' && releaseStatus != 'Released',
       },
     ];
 
@@ -206,8 +201,7 @@ class _ReleaseProcessingScreenState
                   ...steps.map((step) {
                     final status = step['status'] as String;
                     final enabled = step['enabled'] as bool;
-                    final isFinished =
-                        status == 'Completed' ||
+                    final isFinished = status == 'Completed' ||
                         status == 'Approved' ||
                         status == 'Released';
 
@@ -215,17 +209,14 @@ class _ReleaseProcessingScreenState
                       children: [
                         ReleaseStepCard(
                           title: step['title'] as String,
-                          description:
-                              step['description'] as String,
+                          description: step['description'] as String,
                           status: status,
                           icon: step['icon'] as IconData,
                           onTap: enabled
                               ? () {
                                   updateReleaseStage(
-                                    column:
-                                        step['column'] as String,
-                                    newStatus:
-                                        step['newStatus'] as String,
+                                    column: step['column'] as String,
+                                    newStatus: step['newStatus'] as String,
                                     title: step['title'] as String,
                                   );
                                 }
@@ -238,8 +229,7 @@ class _ReleaseProcessingScreenState
                               onPressed: () {
                                 updateReleaseStage(
                                   column: step['column'] as String,
-                                  newStatus:
-                                      step['newStatus'] as String,
+                                  newStatus: step['newStatus'] as String,
                                   title: step['title'] as String,
                                 );
                               },

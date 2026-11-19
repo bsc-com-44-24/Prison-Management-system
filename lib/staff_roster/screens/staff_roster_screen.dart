@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/staff_model.dart';
 import '../widgets/roster_card.dart';
@@ -61,7 +61,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
         return AlertDialog(
           title: const Text(
             'Assign New Shift',
-            style: TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Form(
@@ -71,41 +72,61 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                 children: [
                   TextFormField(
                     controller: _shiftNameController,
-                    decoration: const InputDecoration(labelText: 'Shift Name (e.g. Morning Shift)'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter shift name' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Shift Name (e.g. Morning Shift)'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter shift name'
+                        : null,
                   ),
                   TextFormField(
                     controller: _timeRangeController,
-                    decoration: const InputDecoration(labelText: 'Time Range (e.g. 06:00 - 14:00)'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter time range' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Time Range (e.g. 06:00 - 14:00)'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter time range'
+                        : null,
                   ),
                   TextFormField(
                     controller: _supervisorController,
-                    decoration: const InputDecoration(labelText: 'Supervisor Name (e.g. Officer K. Banda)'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter supervisor name' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Supervisor Name (e.g. Officer K. Banda)'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter supervisor name'
+                        : null,
                   ),
                   TextFormField(
                     controller: _roleController,
-                    decoration: const InputDecoration(labelText: 'Supervisor Role (e.g. Guard Lead)'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter role' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Supervisor Role (e.g. Guard Lead)'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter role'
+                        : null,
                   ),
                   TextFormField(
                     controller: _locationController,
-                    decoration: const InputDecoration(labelText: 'Assigned Location (e.g. Block A)'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter location' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Assigned Location (e.g. Block A)'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter location'
+                        : null,
                   ),
                   TextFormField(
                     controller: _countController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Number of Officers'),
-                    validator: (value) => value == null || value.isEmpty ? 'Please enter officer count' : null,
+                    decoration:
+                        const InputDecoration(labelText: 'Number of Officers'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter officer count'
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedStatus,
                     decoration: const InputDecoration(labelText: 'Status'),
-                    items: ['Active Now', 'Scheduled', 'High Alert'].map((status) {
-                      return DropdownMenuItem(value: status, child: Text(status));
+                    items:
+                        ['Active Now', 'Scheduled', 'High Alert'].map((status) {
+                      return DropdownMenuItem(
+                          value: status, child: Text(status));
                     }).toList(),
                     onChanged: (value) {
                       if (value != null) {
@@ -130,7 +151,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
-                if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                if (_formKey.currentState != null &&
+                    _formKey.currentState!.validate()) {
                   final newShift = ShiftModel(
                     shiftName: _shiftNameController.text,
                     timeRange: _timeRangeController.text,
@@ -167,7 +189,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
         return AlertDialog(
           title: Text(
             shift.shiftName,
-            style: const TextStyle(color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Color(0xFF2C4A3E), fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -180,7 +203,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                 const Divider(height: 24),
                 const Text(
                   "Supervisor Details",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
                 ),
                 const SizedBox(height: 8),
                 _detailRow("Name:", shift.supervisorName),
@@ -190,14 +214,16 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                 const Divider(height: 24),
                 Text(
                   "Assigned Personnel (${shift.assignedGuards.length} Officers)",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
                 ),
                 const SizedBox(height: 8),
                 ...shift.assignedGuards.map((guard) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Row(
                         children: [
-                          const Icon(Icons.fiber_manual_record, size: 8, color: Color(0xFF2C4A3E)),
+                          const Icon(Icons.fiber_manual_record,
+                              size: 8, color: Color(0xFF2C4A3E)),
                           const SizedBox(width: 8),
                           Text(guard, style: const TextStyle(fontSize: 13)),
                         ],
@@ -231,7 +257,10 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 13),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade700,
+                  fontSize: 13),
             ),
           ),
           Expanded(
@@ -248,7 +277,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
   @override
   Widget build(BuildContext context) {
     // Calculate total officers dynamically from loaded shifts
-    final totalOfficers = _shifts.fold<int>(0, (sum, shift) => sum + shift.officerCount);
+    final totalOfficers =
+        _shifts.fold<int>(0, (sum, shift) => sum + shift.officerCount);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -278,11 +308,13 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.calendar_month, size: 18, color: Color(0xFF2C4A3E)),
+                  Icon(Icons.calendar_month,
+                      size: 18, color: Color(0xFF2C4A3E)),
                   SizedBox(width: 8),
                   Text(
                     "Mon, 13 Oct 2026",
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Color(0xFF2C4A3E)),
                   ),
                   Icon(Icons.arrow_drop_down, color: Color(0xFF2C4A3E)),
                 ],
@@ -305,13 +337,17 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
           ),
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   "Shift Schedule Overview",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF334155)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Color(0xFF334155)),
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _showAssignShiftDialog(context),
@@ -331,16 +367,21 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.assignment_outlined, size: 48, color: Colors.grey.shade400),
+                        Icon(Icons.assignment_outlined,
+                            size: 48, color: Colors.grey.shade400),
                         const SizedBox(height: 12),
                         Text(
                           'No shifts assigned yet',
-                          style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Click "Assign Shift" or sync from API',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade500),
                         ),
                       ],
                     ),
@@ -350,7 +391,8 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
                     itemBuilder: (context, index) {
                       return RosterCard(
                         shift: _shifts[index],
-                        onContactPressed: () => _showShiftDetailDialog(context, _shifts[index]),
+                        onContactPressed: () =>
+                            _showShiftDetailDialog(context, _shifts[index]),
                       );
                     },
                   ),
@@ -360,12 +402,19 @@ class _StaffRosterScreenState extends State<StaffRosterScreen> {
     );
   }
 
-  Widget _buildStatTile(String label, String value, {Color valueColor = const Color(0xFF1E293B)}) {
+  Widget _buildStatTile(String label, String value,
+      {Color valueColor = const Color(0xFF1E293B)}) {
     return Column(
       children: [
-        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+        Text(label,
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade600)),
         const SizedBox(height: 4),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: valueColor)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.bold, color: valueColor)),
       ],
     );
   }

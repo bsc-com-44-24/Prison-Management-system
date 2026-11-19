@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../database/db_helper.dart';
 import '../models/inmate_model.dart';
@@ -73,7 +73,7 @@ class _InmateListScreenState extends State<InmateListScreen> {
 
       final bool matchesSearch =
           inmate.fullName.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          inmate.id.toLowerCase().contains(searchQuery.toLowerCase());
+              inmate.id.toLowerCase().contains(searchQuery.toLowerCase());
 
       return matchesFilter && matchesSearch;
     }).toList();
@@ -262,9 +262,8 @@ class _InmateListScreenState extends State<InmateListScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: isActive
-                                  ? Colors.green[50]
-                                  : Colors.red[50],
+                              color:
+                                  isActive ? Colors.green[50] : Colors.red[50],
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isActive
@@ -319,7 +318,6 @@ class _InmateListScreenState extends State<InmateListScreen> {
         selectedItemColor: const Color(0xFF7A1F2D),
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-
         onTap: (index) {
           switch (index) {
             case 0:
@@ -339,7 +337,6 @@ class _InmateListScreenState extends State<InmateListScreen> {
               break;
           }
         },
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

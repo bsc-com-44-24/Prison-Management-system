@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AssignInmateScreen extends StatefulWidget {
@@ -36,6 +36,24 @@ class _AssignInmateScreenState extends State<AssignInmateScreen> {
             style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      body: ValueListenableBuilder(
+        valueListenable: inmatesBox.listenable(),
+        builder: (context, Box box, _) {
+          if (box.isEmpty) {
+            return const Center(
+              child: Text('No inmates found in database. Add inmates first!'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: box.length,
+            itemBuilder: (context, index) {
+              final inmate = box.getAt(index);
+              // Adjust keys based on your inmate model structure (e.g., name, cellBlock)
+              final inmateName = inmate['name'] ??
+                  inmate['fullName'] ??
+                  'Inmate #${index + 1}';
+              final cellBlock = inmate['cellBlock'] ?? 'Cell Block A';
       body: (inmatesBox == null || inmatesBox.isEmpty)
           ? const Center(
               child: Text(

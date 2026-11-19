@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/inmate_model.dart';
 import 'new_inmate_screen.dart';
