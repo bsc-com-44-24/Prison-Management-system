@@ -1,6 +1,4 @@
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../core/api/api_client.dart';
 
 class ProgramFacilitatorDashboardStats {
   final int totalProgrammes;
@@ -8,60 +6,137 @@ class ProgramFacilitatorDashboardStats {
   final int activeProgrammes;
   final int completedProgrammes;
 
-  ProgramFacilitatorDashboardStats({
+  const ProgramFacilitatorDashboardStats({
     required this.totalProgrammes,
     required this.participatingInmates,
     required this.activeProgrammes,
     required this.completedProgrammes,
   });
+}
 
-  factory ProgramFacilitatorDashboardStats.fromJson(
-    Map<String, dynamic> json,
-  ) {
-    int getInt(dynamic value) {
-      if (value is int) return value;
-      if (value is num) return value.toInt();
-      return int.tryParse(value?.toString() ?? '') ?? 0;
-    }
+class ProgramFacilitatorDashboardData {
+  final ProgramFacilitatorDashboardStats stats;
+  final List<Map<String, dynamic>> programmes;
 
-    return ProgramFacilitatorDashboardStats(
-      totalProgrammes: getInt(json['totalProgrammes']),
-      participatingInmates: getInt(json['participatingInmates']),
-      activeProgrammes: getInt(json['activeProgrammes']),
-      completedProgrammes: getInt(json['completedProgrammes']),
-    );
-  }
+  const ProgramFacilitatorDashboardData({
+    required this.stats,
+    required this.programmes,
+  });
 }
 
 class ProgramFacilitatorApiService {
-  static const String baseUrl = 'http://localhost:8080';
+  static Future<ProgramFacilitatorDashboardData> getDashboardData() async {
+    final api = ApiClient.instance;
+    final results = await Future.wait([
+      api.getAllPages('/programs'),
+      api.getAllPages('/programs/enrollments'),
+    ]);
+    final programmes = results[0];
+    final enrollments = results[1];
+    final participatingInmates = enrollments
+        .map((enrollment) => enrollment['inmateId']?.toString())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .length;
 
-  static Future<ProgramFacilitatorDashboardStats> getDashboardStats({
-    String? token,
-  }) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/program-facilitator/dashboard'),
-      headers: {
-        'Accept': 'application/json',
-        if (token != null && token.isNotEmpty)
-          'Authorization': 'Bearer $token',
+    return ProgramFacilitatorDashboardData(
+      programmes: programmes,
+      stats: ProgramFacilitatorDashboardStats(
+        totalProgrammes: programmes.length,
+        participatingInmates: participatingInmates,
+        activeProgrammes: programmes
+            .where((program) =>
+                program['status']?.toString().toUpperCase() == 'ACTIVE')
+            .length,
+        completedProgrammes: programmes
+            .where((program) =>
+                program['status']?.toString().toUpperCase() == 'COMPLETED')
+            .length,
+      ),
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getPrograms() {
+    return ApiClient.instance.getAllPages('/programs');
+  }
+
+  static Future<List<Map<String, dynamic>>> getEnrollments({
+    String? programId,
+    String? inmateId,
+  }) {
+    return ApiClient.instance.getAllPages(
+      '/programs/enrollments',
+      filters: {
+        if (programId != null) 'programId': programId,
+        if (inmateId != null) 'inmateId': inmateId,
       },
     );
+  }
 
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
+  static Future<List<Map<String, dynamic>>> getAttendance({
+    String? programName,
+    String? inmateId,
+  }) {
+    return ApiClient.instance.getAllPages(
+      '/programs/attendance',
+      filters: {
+        if (programName != null) 'programName': programName,
+        if (inmateId != null) 'inmateId': inmateId,
+      },
+    );
+  }
 
-      final Map<String, dynamic> data =
-          decoded is Map<String, dynamic> && decoded['data'] is Map
-              ? Map<String, dynamic>.from(decoded['data'])
-              : Map<String, dynamic>.from(decoded as Map);
+  static Future<void> createProgram({
+    required String name,
+    String? description,
+    String? schedule,
+    String? instructorUserId,
+  }) async {
+    await ApiClient.instance.post(
+      '/programs',
+      body: {
+        'name': name,
+        if (description != null && description.isNotEmpty)
+          'description': description,
+        if (schedule != null && schedule.isNotEmpty) 'schedule': schedule,
+        if (instructorUserId != null && instructorUserId.isNotEmpty)
+          'instructorUserId': instructorUserId,
+      },
+    );
+  }
 
-      return ProgramFacilitatorDashboardStats.fromJson(data);
-    }
+  static Future<void> createEnrollment({
+    required String inmateId,
+    required String programId,
+    required String enrollmentDate,
+  }) async {
+    await ApiClient.instance.post(
+      '/programs/enrollments',
+      body: {
+        'inmateId': inmateId,
+        'programId': programId,
+        'enrollmentDate': enrollmentDate,
+      },
+    );
+  }
 
-    throw Exception(
-      'Failed to load dashboard statistics. '
-      'Status code: ${response.statusCode}',
+  static Future<void> recordAttendance({
+    required String inmateId,
+    required String programId,
+    required String sessionDate,
+    required String attendanceStatus,
+    String? remarks,
+  }) async {
+    await ApiClient.instance.post(
+      '/programs/attendance',
+      body: {
+        'inmateId': inmateId,
+        'programId': programId,
+        'sessionDate': sessionDate,
+        'attendanceStatus': attendanceStatus,
+        if (remarks != null && remarks.isNotEmpty) 'remarks': remarks,
+      },
     );
   }
 }

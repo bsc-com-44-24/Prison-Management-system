@@ -3,14 +3,10 @@ import '../models/visitor.dart';
 
 class VisitorDetailsScreen extends StatelessWidget {
   final Visitor visitor;
-  final VoidCallback onApprove;
-  final VoidCallback onDecline;
 
   const VisitorDetailsScreen({
     super.key,
     required this.visitor,
-    required this.onApprove,
-    required this.onDecline,
   });
 
   @override
@@ -36,39 +32,18 @@ class VisitorDetailsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildDetailRow('Full Name:', visitor.name),
-            _buildDetailRow('National ID:', visitor.idNumber),
-            _buildDetailRow('Phone Number:', visitor.phone),
             _buildDetailRow('Relationship:', visitor.relationship),
             _buildDetailRow('Visiting Inmate:', visitor.inmateName),
-            _buildDetailRow('Purpose of Visit:', visitor.purpose),
             _buildDetailRow('Items/Belongings:', visitor.belongings),
-            _buildDetailRow('Current Decision:', visitor.status),
+            _buildDetailRow('Visit date and time:', visitor.visitDateTime.toLocal().toString()),
+            _buildDetailRow('Record status:', visitor.status),
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            onDecline();
-          },
-          child: const Text(
-            'Decline',
-            style: TextStyle(
-                color: Color(0xFF7A1F2D), fontWeight: FontWeight.bold),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF7A1F2D),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-            onApprove();
-          },
-          child: const Text('Approve', style: TextStyle(color: Colors.white)),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
         ),
       ],
     );

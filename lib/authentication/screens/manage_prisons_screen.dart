@@ -1,5 +1,6 @@
-
 import 'package:material_ui/material_ui.dart';
+import '../../core/api/api_client.dart';
+import '../../services/admin_service.dart';
 
 class ManagePrisonsScreen extends StatefulWidget {
   final List<Map<String, String>> initialPrisons;
@@ -10,26 +11,29 @@ class ManagePrisonsScreen extends StatefulWidget {
   });
 
   @override
-  State<ManagePrisonsScreen> createState() =>
-      _ManagePrisonsScreenState();
+  State<ManagePrisonsScreen> createState() => _ManagePrisonsScreenState();
 }
 
 class _Prison {
   String prisonId;
   String prisonName;
   String prisonLocation;
+  bool active;
 
   _Prison({
     required this.prisonId,
     required this.prisonName,
     required this.prisonLocation,
+    required this.active,
   });
 
-  factory _Prison.fromMap(Map<String, String> map) {
+  factory _Prison.fromMap(Map<String, dynamic> map) {
     return _Prison(
-      prisonId: map['prisonId'] ?? '',
-      prisonName: map['prisonName'] ?? '',
-      prisonLocation: map['prisonLocation'] ?? '',
+      prisonId: (map['id'] ?? map['prisonId'] ?? '').toString(),
+      prisonName: (map['name'] ?? map['prisonName'] ?? '').toString(),
+      prisonLocation:
+          (map['location'] ?? map['prisonLocation'] ?? '').toString(),
+      active: map['active'] != false,
     );
   }
 }
@@ -39,19 +43,20 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
   static const Color maroon = Color(0xFF7A2032);
   static const Color background = Color(0xFFF4F5F3);
 
-  final TextEditingController searchController =
-      TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
-  late List<_Prison> prisons;
+  List<_Prison> prisons = [];
+  bool isLoading = true;
+  String? loadError;
   String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
 
-    prisons = widget.initialPrisons
-        .map((prison) => _Prison.fromMap(prison))
-        .toList();
+    prisons =
+        widget.initialPrisons.map((prison) => _Prison.fromMap(prison)).toList();
+    _loadPrisons();
   }
 
   @override
@@ -72,6 +77,27 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
     }).toList();
   }
 
+  Future<void> _loadPrisons() async {
+    setState(() {
+      isLoading = true;
+      loadError = null;
+    });
+    try {
+      final records = await AdminApiService.getPrisons();
+      if (!mounted) return;
+      setState(() {
+        prisons = records.map(_Prison.fromMap).toList();
+        isLoading = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        loadError = error.message;
+        isLoading = false;
+      });
+    }
+  }
+
   // ADD OR EDIT PRISON
 
   void showPrisonForm({_Prison? prison}) {
@@ -81,35 +107,42 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
       builder: (dialogContext) {
         return _PrisonFormDialog(
           prison: prison,
-          onSave: (id, name, location) {
-            setState(() {
+          onSave: (name, location, blockName, capacity) async {
+            try {
               if (prison == null) {
-                prisons.add(
-                  _Prison(
-                    prisonId: id,
-                    prisonName: name,
-                    prisonLocation: location,
-                  ),
+                await AdminApiService.createPrison(
+                  name: name,
+                  location: location,
+                  blockName: blockName,
+                  firstCellCapacity: capacity,
                 );
               } else {
-                prison.prisonId = id;
-                prison.prisonName = name;
-                prison.prisonLocation = location;
+                await AdminApiService.updatePrison(
+                  id: prison.prisonId,
+                  name: name,
+                  location: location,
+                );
               }
-            });
-
-            Navigator.pop(dialogContext);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  prison == null
-                      ? 'Prison registered successfully'
-                      : 'Prison details updated successfully',
+              if (!mounted || !dialogContext.mounted) return;
+              Navigator.pop(dialogContext);
+              await _loadPrisons();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    prison == null
+                        ? 'Prison registered successfully'
+                        : 'Prison details updated successfully',
+                  ),
+                  backgroundColor: deepGreen,
                 ),
-                backgroundColor: deepGreen,
-              ),
-            );
+              );
+            } on ApiException catch (error) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(error.message)),
+              );
+            }
           },
         );
       },
@@ -142,22 +175,17 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor:
-                      deepGreen.withValues(alpha: 0.12),
+                  backgroundColor: deepGreen.withValues(alpha: 0.12),
                   child: const Icon(
                     Icons.account_balance,
                     size: 30,
                     color: deepGreen,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 Text(
                   prison.prisonName,
                   textAlign: TextAlign.center,
@@ -167,7 +195,6 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                     color: deepGreen,
                   ),
                 ),
-
                 Text(
                   prison.prisonId,
                   style: TextStyle(
@@ -175,10 +202,8 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                     color: Colors.grey.shade600,
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 const Divider(),
-
                 ListTile(
                   leading: const Icon(
                     Icons.edit_outlined,
@@ -198,7 +223,6 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                     showPrisonForm(prison: prison);
                   },
                 ),
-
                 ListTile(
                   leading: const Icon(
                     Icons.delete_outline,
@@ -212,21 +236,24 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                     ),
                   ),
                   subtitle: const Text(
-                    'Remove this prison',
+                    'Deletion is not supported by the backend',
                   ),
                   onTap: () {
                     Navigator.pop(sheetContext);
-                    showDeleteConfirmation(prison);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'The backend does not provide a prison delete endpoint.',
+                        ),
+                      ),
+                    );
                   },
                 ),
-
                 const SizedBox(height: 8),
-
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () =>
-                        Navigator.pop(sheetContext),
+                    onPressed: () => Navigator.pop(sheetContext),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: deepGreen,
                       side: const BorderSide(color: deepGreen),
@@ -239,132 +266,6 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  // DELETE CONFIRMATION
-
-  void showDeleteConfirmation(_Prison prison) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          contentPadding:
-              const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundColor:
-                    maroon.withValues(alpha: 0.10),
-                child: const Icon(
-                  Icons.delete_outline,
-                  size: 34,
-                  color: maroon,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              const Text(
-                'Delete Prison?',
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: maroon,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              const Text(
-                'Are you sure you want to permanently delete this prison?',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14),
-              ),
-
-              const SizedBox(height: 14),
-
-              Text(
-                prison.prisonName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-
-              Text(
-                'Prison ID: ${prison.prisonId}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.pop(dialogContext),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: deepGreen,
-                        side: const BorderSide(
-                          color: deepGreen,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 13,
-                        ),
-                      ),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          prisons.remove(prison);
-                        });
-
-                        Navigator.pop(dialogContext);
-
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Prison deleted successfully',
-                            ),
-                            backgroundColor: deepGreen,
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: maroon,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 13,
-                        ),
-                      ),
-                      child: const Text('Yes, Delete'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ),
         );
       },
@@ -396,8 +297,7 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
               height: 38,
               width: 38,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(
+              errorBuilder: (_, __, ___) => const Icon(
                 Icons.account_balance,
                 color: Colors.white,
                 size: 32,
@@ -425,7 +325,10 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                16, 18, 16, 12,
+                16,
+                18,
+                16,
+                12,
               ),
               child: TextField(
                 controller: searchController,
@@ -451,8 +354,7 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                       : null,
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
@@ -460,7 +362,6 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                 ),
               ),
             ),
-
             if (prisons.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -493,169 +394,182 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
                   ),
                 ),
               ),
-
             Expanded(
-              child: prisons.isEmpty
+              child: isLoading
                   ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 30,
-                        ),
-                        child: Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.account_balance_outlined,
-                              size: 85,
-                              color: deepGreen,
-                            ),
-                            SizedBox(height: 18),
-                            Text(
-                              'No Prisons Found',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: deepGreen,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'There are currently no prisons registered in the system.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: CircularProgressIndicator(color: deepGreen),
                     )
-                  : displayedPrisons.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No matching prisons found',
-                            style: TextStyle(
-                              color: Colors.black54,
+                  : loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(loadError!, textAlign: TextAlign.center),
+                                const SizedBox(height: 12),
+                                ElevatedButton(
+                                  onPressed: _loadPrisons,
+                                  child: const Text('Retry'),
+                                ),
+                              ],
                             ),
                           ),
                         )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(
-                            16, 4, 16, 100,
-                          ),
-                          itemCount: displayedPrisons.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final prison =
-                                displayedPrisons[index];
-
-                            return Card(
-                              color: Colors.white,
-                              elevation: 1,
-                              margin: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                              ),
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.circular(16),
-                                onTap: () =>
-                                    showPrisonActions(prison),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 16,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 25,
-                                        backgroundColor: deepGreen
-                                            .withValues(alpha: 0.10),
-                                        child: const Icon(
-                                          Icons.account_balance,
-                                          color: deepGreen,
-                                          size: 27,
-                                        ),
+                      : prisons.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 30,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.account_balance_outlined,
+                                      size: 85,
+                                      color: deepGreen,
+                                    ),
+                                    SizedBox(height: 18),
+                                    Text(
+                                      'No Prisons Found',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: deepGreen,
                                       ),
-
-                                      const SizedBox(width: 12),
-
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              prison.prisonName,
-                                              maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight:
-                                                    FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-
-                                            const SizedBox(height: 5),
-
-                                            Text(
-                                              'ID: ${prison.prisonId}',
-                                              style: TextStyle(
-                                                color: Colors
-                                                    .grey.shade700,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-
-                                            const SizedBox(height: 4),
-
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on_outlined,
-                                                  size: 15,
-                                                  color: Colors
-                                                      .grey.shade600,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Expanded(
-                                                  child: Text(
-                                                    prison.prisonLocation,
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow
-                                                            .ellipsis,
-                                                    style: TextStyle(
-                                                      color: Colors
-                                                          .grey.shade600,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      const Icon(
-                                        Icons.more_vert,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'There are currently no prisons registered in the system.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                         color: Colors.black54,
+                                        fontSize: 14,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            )
+                          : displayedPrisons.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No matching prisons found',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    4,
+                                    16,
+                                    100,
+                                  ),
+                                  itemCount: displayedPrisons.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 10),
+                                  itemBuilder: (context, index) {
+                                    final prison = displayedPrisons[index];
+
+                                    return Card(
+                                      color: Colors.white,
+                                      elevation: 1,
+                                      margin: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(16),
+                                        onTap: () => showPrisonActions(prison),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 16,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 25,
+                                                backgroundColor: deepGreen
+                                                    .withValues(alpha: 0.10),
+                                                child: const Icon(
+                                                  Icons.account_balance,
+                                                  color: deepGreen,
+                                                  size: 27,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      prison.prisonName,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 5),
+                                                    Text(
+                                                      'ID: ${prison.prisonId}',
+                                                      style: TextStyle(
+                                                        color: Colors
+                                                            .grey.shade700,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .location_on_outlined,
+                                                          size: 15,
+                                                          color: Colors
+                                                              .grey.shade600,
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 3),
+                                                        Expanded(
+                                                          child: Text(
+                                                            prison
+                                                                .prisonLocation,
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: TextStyle(
+                                                              color: Colors.grey
+                                                                  .shade600,
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.more_vert,
+                                                color: Colors.black54,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
             ),
           ],
         ),
@@ -682,10 +596,11 @@ class _ManagePrisonsScreenState extends State<ManagePrisonsScreen> {
 class _PrisonFormDialog extends StatefulWidget {
   final _Prison? prison;
 
-  final Function(
-    String prisonId,
-    String prisonName,
-    String prisonLocation,
+  final Future<void> Function(
+    String name,
+    String location,
+    String blockName,
+    int capacity,
   ) onSave;
 
   const _PrisonFormDialog({
@@ -694,8 +609,7 @@ class _PrisonFormDialog extends StatefulWidget {
   });
 
   @override
-  State<_PrisonFormDialog> createState() =>
-      _PrisonFormDialogState();
+  State<_PrisonFormDialog> createState() => _PrisonFormDialogState();
 }
 
 class _PrisonFormDialogState extends State<_PrisonFormDialog> {
@@ -707,6 +621,9 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
   late final TextEditingController prisonIdController;
   late final TextEditingController prisonNameController;
   late final TextEditingController prisonLocationController;
+  late final TextEditingController initialBlockController;
+  late final TextEditingController firstCellCapacityController;
+  bool isSaving = false;
 
   bool get isEditing => widget.prison != null;
 
@@ -725,6 +642,8 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
     prisonLocationController = TextEditingController(
       text: widget.prison?.prisonLocation ?? '',
     );
+    initialBlockController = TextEditingController(text: 'Block A');
+    firstCellCapacityController = TextEditingController(text: '20');
   }
 
   @override
@@ -732,6 +651,8 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
     prisonIdController.dispose();
     prisonNameController.dispose();
     prisonLocationController.dispose();
+    initialBlockController.dispose();
+    firstCellCapacityController.dispose();
     super.dispose();
   }
 
@@ -778,13 +699,19 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
     required String label,
     required IconData icon,
     required TextEditingController controller,
+    bool readOnly = false,
+    bool required = true,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
         controller: controller,
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
+        readOnly: readOnly,
+        keyboardType: keyboardType,
+        validator: validator ?? (value) {
+          if (required && (value == null || value.trim().isEmpty)) {
             return '$label is required';
           }
           return null;
@@ -814,9 +741,7 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
             left: 20,
             right: 20,
             top: 22,
-            bottom: MediaQuery.of(context).viewInsets.bottom > 0
-                ? 20
-                : 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 20 : 24,
           ),
           child: Form(
             key: formKey,
@@ -847,29 +772,46 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
                     ),
                   ],
                 ),
-
                 const Divider(height: 24),
-
                 buildField(
-                  label: 'Prison ID',
+                  label: isEditing
+                      ? 'Prison ID'
+                      : 'Prison ID (assigned by backend)',
                   icon: Icons.badge_outlined,
                   controller: prisonIdController,
+                  readOnly: true,
+                  required: false,
                 ),
-
                 buildField(
                   label: 'Prison Name',
                   icon: Icons.account_balance_outlined,
                   controller: prisonNameController,
                 ),
-
                 buildField(
                   label: 'Prison Location',
                   icon: Icons.location_on_outlined,
                   controller: prisonLocationController,
                 ),
-
+                if (!isEditing) ...[
+                  buildField(
+                    label: 'Initial Block Name',
+                    icon: Icons.domain_outlined,
+                    controller: initialBlockController,
+                  ),
+                  buildField(
+                    label: 'First Cell Capacity',
+                    icon: Icons.people_outline,
+                    controller: firstCellCapacityController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    final capacity = int.tryParse(value?.trim() ?? '');
+                    return capacity == null || capacity <= 0
+                        ? 'Enter a positive cell capacity'
+                        : null;
+                  },
+                  ),
+                ],
                 const SizedBox(height: 8),
-
                 Row(
                   children: [
                     Expanded(
@@ -890,22 +832,28 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
                         child: const Text('Cancel'),
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (!formKey.currentState!.validate()) {
-                            return;
-                          }
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                if (!formKey.currentState!.validate()) {
+                                  return;
+                                }
 
-                          widget.onSave(
-                            prisonIdController.text.trim(),
-                            prisonNameController.text.trim(),
-                            prisonLocationController.text.trim(),
-                          );
-                        },
+                                setState(() => isSaving = true);
+                                await widget.onSave(
+                                  prisonNameController.text.trim(),
+                                  prisonLocationController.text.trim(),
+                                  initialBlockController.text.trim(),
+                                  int.tryParse(
+                                        firstCellCapacityController.text.trim(),
+                                      ) ??
+                                      0,
+                                );
+                                if (mounted) setState(() => isSaving = false);
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: maroon,
                           foregroundColor: Colors.white,
@@ -916,9 +864,11 @@ class _PrisonFormDialogState extends State<_PrisonFormDialog> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          isEditing ? 'Save Changes' : 'Register',
-                        ),
+                        child: Text(isSaving
+                            ? 'Saving...'
+                            : isEditing
+                                ? 'Save Changes'
+                                : 'Register'),
                       ),
                     ),
                   ],

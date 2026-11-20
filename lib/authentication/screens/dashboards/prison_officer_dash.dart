@@ -1,18 +1,17 @@
-
 import 'package:material_ui/material_ui.dart';
 
 class PrisonOfficerDashboardScreen extends StatefulWidget {
   final Map<String, Object?> user;
 
-  final VoidCallback? onReleaseManagement;
-  final VoidCallback? onIssueTransfer;
+  final VoidCallback? onDutyRoster;
+  final VoidCallback? onReleaseProcess;
   final VoidCallback? onViewInmates;
 
   const PrisonOfficerDashboardScreen({
     super.key,
     required this.user,
-    this.onReleaseManagement,
-    this.onIssueTransfer,
+    this.onDutyRoster,
+    this.onReleaseProcess,
     this.onViewInmates,
   });
 
@@ -23,7 +22,6 @@ class PrisonOfficerDashboardScreen extends StatefulWidget {
 
 class _PrisonOfficerDashboardScreenState
     extends State<PrisonOfficerDashboardScreen> {
-
   // Theme colours
   final Color deepGreen = const Color(0xFF344B3B);
   final Color maroon = const Color(0xFF7A2032);
@@ -69,7 +67,6 @@ class _PrisonOfficerDashboardScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   16,
@@ -88,9 +85,7 @@ class _PrisonOfficerDashboardScreenState
                         color: Colors.black87,
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     const Text(
                       'Manage your prison operations',
                       style: TextStyle(
@@ -98,9 +93,7 @@ class _PrisonOfficerDashboardScreenState
                         color: Colors.black54,
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
                     _buildQuickActions(),
                   ],
                 ),
@@ -151,7 +144,6 @@ class _PrisonOfficerDashboardScreenState
                   color: Colors.white,
                 ),
               ),
-
               const Expanded(
                 child: Text(
                   'Malawi Prisons Service',
@@ -163,7 +155,6 @@ class _PrisonOfficerDashboardScreenState
                   ),
                 ),
               ),
-
               IconButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -179,9 +170,8 @@ class _PrisonOfficerDashboardScreenState
                   color: Colors.white,
                 ),
               ),
-
               IconButton(
-                onPressed: _showProfile,
+                onPressed: () => Navigator.pushNamed(context, '/profile'),
                 icon: const Icon(
                   Icons.person_outline,
                   color: Colors.white,
@@ -189,23 +179,19 @@ class _PrisonOfficerDashboardScreenState
               ),
             ],
           ),
-
           const SizedBox(height: 18),
-
           Row(
             children: [
               CircleAvatar(
                 radius: 27,
-                backgroundColor: Colors.white.withOpacity(0.15),
+                backgroundColor: Colors.white.withValues(alpha: 0.15),
                 child: const Icon(
                   Icons.person,
                   size: 32,
                   color: Colors.white,
                 ),
               ),
-
               const SizedBox(width: 14),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,19 +206,15 @@ class _PrisonOfficerDashboardScreenState
                         color: Colors.white,
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     Text(
                       userRole,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
-
                     const SizedBox(height: 4),
-
                     Row(
                       children: [
                         const Icon(
@@ -240,9 +222,7 @@ class _PrisonOfficerDashboardScreenState
                           size: 13,
                           color: Colors.white70,
                         ),
-
                         const SizedBox(width: 4),
-
                         Expanded(
                           child: Text(
                             prisonName,
@@ -250,7 +230,7 @@ class _PrisonOfficerDashboardScreenState
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                             ),
                           ),
                         ),
@@ -280,19 +260,17 @@ class _PrisonOfficerDashboardScreenState
       childAspectRatio: 1.12,
       children: [
         _buildQuickAction(
-          title: 'Release Management',
-          description: 'Manage inmate releases',
-          icon: Icons.assignment_outlined,
-          onTap: widget.onReleaseManagement,
+          title: 'Duty Roster',
+          description: 'View shifts and assign duty to staff',
+          icon: Icons.calendar_month_outlined,
+          onTap: widget.onDutyRoster,
         ),
-
         _buildQuickAction(
-          title: 'Issue Transfer',
-          description: 'Transfer inmates to another prison',
-          icon: Icons.swap_horiz,
-          onTap: widget.onIssueTransfer,
+          title: 'Release Process',
+          description: 'Process inmates reaching their release date',
+          icon: Icons.assignment_outlined,
+          onTap: widget.onReleaseProcess,
         ),
-
         _buildQuickAction(
           title: 'View Inmates',
           description: 'View and manage inmates',
@@ -319,7 +297,7 @@ class _PrisonOfficerDashboardScreenState
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -333,7 +311,7 @@ class _PrisonOfficerDashboardScreenState
               height: 45,
               width: 45,
               decoration: BoxDecoration(
-                color: deepGreen.withOpacity(0.10),
+                color: deepGreen.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -342,9 +320,7 @@ class _PrisonOfficerDashboardScreenState
                 size: 24,
               ),
             ),
-
             const SizedBox(height: 12),
-
             Text(
               title,
               maxLines: 2,
@@ -355,9 +331,7 @@ class _PrisonOfficerDashboardScreenState
                 color: Colors.black87,
               ),
             ),
-
             const SizedBox(height: 5),
-
             Text(
               description,
               maxLines: 2,
@@ -383,6 +357,16 @@ class _PrisonOfficerDashboardScreenState
   ) {
     if (callback != null) {
       callback();
+      return;
+    }
+
+    final route = switch (actionName) {
+      'Duty Roster' => '/staff',
+      'Release Process' || 'Release Management' => '/releases',
+      _ => null,
+    };
+    if (route != null) {
+      Navigator.pushNamed(context, route);
       return;
     }
 
@@ -416,16 +400,14 @@ class _PrisonOfficerDashboardScreenState
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundColor: deepGreen.withOpacity(0.10),
+                backgroundColor: deepGreen.withValues(alpha: 0.10),
                 child: Icon(
                   Icons.person,
                   size: 40,
                   color: deepGreen,
                 ),
               ),
-
               const SizedBox(height: 14),
-
               Text(
                 userName,
                 textAlign: TextAlign.center,
@@ -434,9 +416,7 @@ class _PrisonOfficerDashboardScreenState
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 userEmail,
                 textAlign: TextAlign.center,
@@ -445,9 +425,7 @@ class _PrisonOfficerDashboardScreenState
                   fontSize: 13,
                 ),
               ),
-
               const SizedBox(height: 8),
-
               Text(
                 userRole,
                 style: TextStyle(
@@ -455,9 +433,7 @@ class _PrisonOfficerDashboardScreenState
                   fontWeight: FontWeight.w600,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 prisonName,
                 textAlign: TextAlign.center,
@@ -466,9 +442,7 @@ class _PrisonOfficerDashboardScreenState
                   fontSize: 12,
                 ),
               ),
-
               const SizedBox(height: 22),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

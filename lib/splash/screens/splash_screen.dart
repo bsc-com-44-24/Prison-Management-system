@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import '../../authentication/screens/auth_services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,12 +12,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _restoreSession();
+  }
 
-    Future.delayed(const Duration(seconds: 5), () {
-      if (!mounted) return;
-
-      Navigator.pushReplacementNamed(context, '/login');
-    });
+  Future<void> _restoreSession() async {
+    // Keep the branded splash visible briefly while secure storage and /auth/me
+    // are checked, then resume a valid session or return to sign in.
+    final result = await Future.wait<Object?>([
+      AuthService().restoreSession(),
+      Future<void>.delayed(const Duration(milliseconds: 900)),
+    ]);
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(
+      context,
+      result.first is Map<String, dynamic> ? '/home' : '/login',
+    );
   }
 
   @override
@@ -52,8 +62,11 @@ class _SplashScreenState extends State<SplashScreen> {
                       width: 150,
                       height: 150,
                       fit: BoxFit.contain,
-                      color: const Color(0xFF344B3B),
-                      colorBlendMode: BlendMode.multiply,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.security,
+                        size: 72,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),

@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/api/api_client.dart';
+import 'auth_services/auth_service.dart';
+import 'dashboards/role_dashboard_factory.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  final AuthService _authService = AuthService();
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
@@ -38,37 +42,17 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // TODO:
-      // Connect this section to your Spring Boot authentication API.
-      //
-      // Send:
-      // 1. email or username
-      // 2. password
-      //
-      // The backend should return:
-      // 1. authenticated user details
-      // 2. user role
-      // 3. access token
-      //
-      // Example:
-      //
-      // final authenticatedUser = await AuthApiService.login(
-      //   usernameOrEmail: _emailUsernameController.text.trim(),
-      //   password: _passwordController.text,
-      // );
-      //
-      // _openDashboard(authenticatedUser);
+      final authenticatedUser = await _authService.login(
+        emailOrUsername: _emailUsernameController.text.trim(),
+        password: _passwordController.text,
+      );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Authentication API has not been connected yet.',
-          ),
-        ),
-      );
+      _openDashboard(authenticatedUser);
     } catch (e) {
+      AuthService.currentUser = null;
+      await ApiClient.instance.clearSession();
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,6 +67,16 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
+  }
+
+  void _openDashboard(Map<String, dynamic> authenticatedUser) {
+    final user = Map<String, Object?>.from(authenticatedUser);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => RoleDashboardFactory.build(user),
+      ),
+      (route) => false,
+    );
   }
 
   void _handleResetPassword() {

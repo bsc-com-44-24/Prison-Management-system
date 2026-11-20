@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'auth_services/auth_service.dart';
+
 class SignOutDialog extends StatelessWidget {
   const SignOutDialog({super.key});
 
@@ -75,8 +77,9 @@ class SignOutDialog extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Navigate back to Login Screen and clear routing stack
+                onPressed: () async {
+                  await AuthService().logout();
+                  if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     '/login',

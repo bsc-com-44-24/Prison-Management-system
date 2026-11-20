@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AssignInmateScreen extends StatefulWidget {
   final String programTitle;
@@ -26,38 +26,22 @@ class _AssignInmateScreenState extends State<AssignInmateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool boxExists = Hive.isBoxOpen('inmates_box');
-    final inmatesBox = boxExists ? Hive.box('inmates_box') : null;
+    final Box? inmatesBox =
+        Hive.isBoxOpen('inmates_box') ? Hive.box('inmates_box') : null;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF344B3B),
-        title: Text('Assign to ${widget.programTitle}',
-            style: const TextStyle(color: Colors.white)),
+        title: Text(
+          'Assign to ${widget.programTitle}',
+          style: const TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: ValueListenableBuilder(
-        valueListenable: inmatesBox.listenable(),
-        builder: (context, Box box, _) {
-          if (box.isEmpty) {
-            return const Center(
-              child: Text('No inmates found in database. Add inmates first!'),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: box.length,
-            itemBuilder: (context, index) {
-              final inmate = box.getAt(index);
-              // Adjust keys based on your inmate model structure (e.g., name, cellBlock)
-              final inmateName = inmate['name'] ??
-                  inmate['fullName'] ??
-                  'Inmate #${index + 1}';
-              final cellBlock = inmate['cellBlock'] ?? 'Cell Block A';
-      body: (inmatesBox == null || inmatesBox.isEmpty)
+      body: inmatesBox == null || inmatesBox.isEmpty
           ? const Center(
               child: Text(
-                'No inmates found in database (`inmates_box`).',
+                'No inmates found in database (inmates_box).',
                 style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
             )
@@ -67,72 +51,72 @@ class _AssignInmateScreenState extends State<AssignInmateScreen> {
               itemBuilder: (context, index) {
                 final inmate = inmatesBox.getAt(index);
                 final name = inmate is Map
-                    ? (inmate['name'] ?? inmate['fullName'] ?? 'Inmate $index')
-                    : 'Inmate $index';
-                final inmateId = inmate is Map ? (inmate['id'] ?? name) : name;
+                    ? (inmate['name'] ??
+                            inmate['fullName'] ??
+                            'Inmate ${index + 1}')
+                        .toString()
+                    : 'Inmate ${index + 1}';
+                final inmateId =
+                    inmate is Map ? (inmate['id'] ?? name).toString() : name;
                 final isAlreadyAssigned = assignedList.contains(inmateId);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: isAlreadyAssigned
-                          ? Colors.grey
-                          : const Color(0xFF7A1F2D),
-                      child: const Icon(Icons.person, color: Colors.white),
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFF344B3B),
+                      child: Icon(Icons.person, color: Colors.white),
                     ),
                     title: Text(name),
                     subtitle: Text('ID: $inmateId'),
                     trailing: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isAlreadyAssigned
-                            ? Colors.grey[400]
-                            : const Color(0xFF344B3B),
+                            ? Colors.grey
+                            : const Color(0xFF7A1F2D),
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () {
-                        // Duplicate check & Rejection logic
                         if (isAlreadyAssigned) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  '❌ $name is already enrolled in ${widget.programTitle}!'),
+                                '$name is already enrolled in ${widget.programTitle}.',
+                              ),
                               backgroundColor: const Color(0xFF7A1F2D),
                             ),
                           );
-                        } else {
-                          setState(() {
-                            assignedList.add(inmateId);
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('✅ Successfully added $name!'),
-                              backgroundColor: const Color(0xFF344B3B),
-                            ),
-                          );
+                          return;
                         }
+
+                        setState(() {
+                          assignedList.add(inmateId);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Successfully added $name to ${widget.programTitle}.',
+                            ),
+                          ),
+                        );
                       },
-                      child: Text(isAlreadyAssigned ? 'Enrolled' : 'Confirm'),
+                      child: Text(isAlreadyAssigned ? 'Enrolled' : 'Assign'),
                     ),
                   ),
                 );
               },
             ),
-      // Footer with Save / Done button to return back to program list
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         color: Colors.white,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF7A1F2D),
+            backgroundColor: const Color(0xFF344B3B),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
-          onPressed: () {
-            Navigator.pop(context, assignedList);
-          },
-          child: const Text('Save & Return to Programs',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          onPressed: () => Navigator.pop(context, assignedList),
+          child: const Text('Save and Return'),
         ),
       ),
     );

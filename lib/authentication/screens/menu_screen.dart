@@ -2,31 +2,104 @@ import 'package:material_ui/material_ui.dart';
 import 'logout_screen.dart';
 
 class PrisonMenuDrawer extends StatefulWidget {
-  // Accept the logged-in user data map dynamically
   final Map<String, dynamic>? user;
+  final ValueChanged<String>? onItemSelected;
 
-  const PrisonMenuDrawer({super.key, this.user});
+  const PrisonMenuDrawer({
+    super.key,
+    this.user,
+    this.onItemSelected,
+  });
 
   @override
   State<PrisonMenuDrawer> createState() => _PrisonMenuDrawerState();
 }
 
 class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
-  // Track the currently selected menu index
   int _selectedIndex = 0;
 
-  // Fully typed list to resolve compiler errors
-  final List<Map<String, dynamic>> _menuItems = [
-    {'title': 'Dashboard', 'icon': Icons.dashboard},
-    {'title': 'Inmates', 'icon': Icons.people},
-    {'title': 'Visitors', 'icon': Icons.badge},
-    {'title': 'Rehabilitation', 'icon': Icons.security},
-    {'title': 'Tracking', 'icon': Icons.location_on_outlined},
-    {'title': 'Staff Duty Roster', 'icon': Icons.calendar_today},
-    {'title': 'Release Management', 'icon': Icons.assignment_turned_in},
-    {'title': 'Notifications', 'icon': Icons.notifications_none},
-    {'title': 'Profile & Settings', 'icon': Icons.person_outline},
-  ];
+  List<Map<String, dynamic>> _menuItemsForRole(String role) {
+    final normalizedRole =
+        role.trim().toLowerCase().replaceAll(RegExp(r'[_-]+'), ' ');
+    final isAdmin = {
+      'admin',
+      'super admin',
+      'system admin',
+      'system administrator',
+    }.contains(normalizedRole);
+
+    final items = <Map<String, dynamic>>[
+      {'title': 'Dashboard', 'icon': Icons.dashboard, 'route': '/home'},
+    ];
+
+    if (isAdmin) {
+      items.addAll([
+        {
+          'title': 'Manage Users',
+          'icon': Icons.people,
+          'route': '/manage-users',
+        },
+        {
+          'title': 'Manage Prisons',
+          'icon': Icons.account_balance,
+          'route': '/manage-prisons',
+        },
+      ]);
+    } else if (normalizedRole == 'commissioner' ||
+        normalizedRole == 'prison commissioner') {
+      items.addAll([
+        {
+          'title': 'Transfer Requests',
+          'icon': Icons.swap_horiz,
+          'route': '/commissioner-transfers',
+        },
+        {
+          'title': 'Notifications',
+          'icon': Icons.notifications_none,
+          'route': '/commissioner-notifications',
+        },
+      ]);
+    } else if (normalizedRole == 'duty officer' ||
+        normalizedRole == 'prison officer') {
+      items.addAll([
+        {'title': 'Inmates', 'icon': Icons.people, 'route': '/inmates'},
+        {
+          'title': 'Staff Duty Roster',
+          'icon': Icons.calendar_today,
+          'route': '/staff',
+        },
+        {
+          'title': 'Release Management',
+          'icon': Icons.assignment_turned_in,
+          'route': '/releases',
+        },
+      ]);
+    } else if (normalizedRole == 'records officer' ||
+        normalizedRole == 'record officer') {
+      items.addAll([
+        {'title': 'Inmates', 'icon': Icons.people, 'route': '/inmates'},
+        {'title': 'Visitors', 'icon': Icons.badge, 'route': '/visitors'},
+        {
+          'title': 'Tracking',
+          'icon': Icons.location_on_outlined,
+          'route': '/tracking',
+        },
+      ]);
+    } else if (normalizedRole == 'program facilitator') {
+      items.add({
+        'title': 'Rehabilitation',
+        'icon': Icons.security,
+        'route': '/rehabilitation',
+      });
+    }
+
+    items.add({
+      'title': 'Profile & Settings',
+      'icon': Icons.person_outline,
+      'route': '/profile',
+    });
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +110,7 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
     // Extract user details dynamically from the user map with fallbacks
     final String fullName = widget.user?['full_name'] ?? 'User';
     final String email = widget.user?['email'] ?? 'email@prisons.gov.mw';
+    final menuItems = _menuItemsForRole(widget.user?['role']?.toString() ?? '');
 
     return Drawer(
       backgroundColor: primaryGreen,
@@ -102,9 +176,9 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
             // Scrollable Menu List
             Expanded(
               child: ListView.builder(
-                itemCount: _menuItems.length,
+                itemCount: menuItems.length,
                 itemBuilder: (context, index) {
-                  final item = _menuItems[index];
+                  final item = menuItems[index];
                   final isSelected = _selectedIndex == index;
 
                   return Padding(
@@ -119,7 +193,15 @@ class _PrisonMenuDrawerState extends State<PrisonMenuDrawer> {
                           setState(() {
                             _selectedIndex = index;
                           });
-                          // Handle menu navigation actions here
+                          final title = item['title'] as String;
+                          final navigator = Navigator.of(context);
+                          navigator.pop();
+                          final onItemSelected = widget.onItemSelected;
+                          if (onItemSelected != null) {
+                            onItemSelected(title);
+                          } else {
+                            navigator.pushNamed(item['route'] as String);
+                          }
                         },
                         child: Container(
                           decoration: BoxDecoration(

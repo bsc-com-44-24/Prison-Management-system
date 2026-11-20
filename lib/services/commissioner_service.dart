@@ -1,127 +1,95 @@
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../core/api/api_client.dart';
 
 class PrisonInfo {
   final String id;
   final String name;
-  final int capacity;
-  final int currentInmates;
+  final String location;
+  final bool active;
 
   const PrisonInfo({
     required this.id,
     required this.name,
-    required this.capacity,
-    required this.currentInmates,
+    required this.location,
+    required this.active,
   });
 
   factory PrisonInfo.fromJson(Map<String, dynamic> json) {
     return PrisonInfo(
       id: (json['id'] ?? '').toString(),
-      name: (json['name'] ?? json['prisonName'] ?? 'Unnamed Prison')
-          .toString(),
-      capacity: _toInt(json['capacity']),
-      currentInmates: _toInt(
-        json['currentInmates'] ?? json['current_inmates'],
-      ),
+      name: (json['name'] ?? 'Unnamed Prison').toString(),
+      location: (json['location'] ?? 'Location not provided').toString(),
+      active: json['active'] == true,
     );
-  }
-
-  static int _toInt(dynamic value) {
-    if (value == null) return 0;
-    if (value is num) return value.toInt();
-    return int.tryParse(value.toString()) ?? 0;
-  }
-
-  double get occupancyPercentage {
-    if (capacity <= 0) return 0;
-    return (currentInmates / capacity) * 100;
   }
 }
 
 class CommissionerApiService {
-  // Change this to your actual Spring Boot backend address.
-  static const String baseUrl = 'http://localhost:8080';
-
-  // Proposed endpoints for the backend team.
-  static const String prisonsEndpoint = '/api/prisons';
-  static const String notificationsEndpoint =
-      '/api/notifications/unread-count';
-
-  final String? token;
-
-  CommissionerApiService({this.token});
-
-  Map<String, String> get _headers {
-    return {
-      'Content-Type': 'application/json',
-      if (token != null && token!.isNotEmpty)
-        'Authorization': 'Bearer $token',
-    };
-  }
-
-  // Retrieve all prisons.
   Future<List<PrisonInfo>> getPrisons() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl$prisonsEndpoint'),
-      headers: _headers,
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to retrieve prisons');
-    }
-
-    final decoded = jsonDecode(response.body);
-
-    dynamic records = decoded;
-
-    // Supports common Spring Boot response wrappers.
-    if (decoded is Map) {
-      records = decoded['data'] ??
-          decoded['content'] ??
-          decoded['prisons'] ??
-          [];
-    }
-
-    if (records is! List) {
-      throw Exception('Unexpected prisons response format');
-    }
-
-    return records
-        .whereType<Map>()
-        .map(
-          (item) => PrisonInfo.fromJson(
-            Map<String, dynamic>.from(item),
-          ),
-        )
-        .toList();
+    final records = await ApiClient.instance.getAllPages('/prisons');
+    return records.map(PrisonInfo.fromJson).toList();
   }
 
-  // Retrieve unread notification count.
-  Future<int> getUnreadNotificationCount() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl$notificationsEndpoint'),
-      headers: _headers,
+  Future<List<Map<String, dynamic>>> getTransfers({
+    String? status,
+  }) {
+    return ApiClient.instance.getAllPages(
+      '/transfers',
+      filters: {
+        if (status != null) 'status': status,
+      },
     );
+  }
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to retrieve notifications');
-    }
+  Future<void> approveTransfer(String id, {String note = ''}) async {
+    await ApiClient.instance.post(
+      '/transfers/$id/approve',
+      body: {'note': note},
+    );
+  }
 
-    final decoded = jsonDecode(response.body);
+  Future<void> rejectTransfer(String id, {String note = ''}) async {
+    await ApiClient.instance.post(
+      '/transfers/$id/reject',
+      body: {'note': note},
+    );
+  }
 
-    if (decoded is num) return decoded.toInt();
+  Future<List<Map<String, dynamic>>> getNotifications({
+    bool unreadOnly = false,
+  }) {
+    return ApiClient.instance.getAllPages(
+      '/notifications',
+      filters: {
+        if (unreadOnly) 'unreadOnly': 'true',
+      },
+    );
+  }
 
-    if (decoded is Map) {
-      final count = decoded['count'] ??
-          decoded['unreadCount'] ??
-          decoded['unread_count'];
+  Future<void> markNotificationRead(String id) async {
+    await ApiClient.instance.patch('/notifications/$id/read');
+  }
 
+  Future<void> markAllNotificationsRead() async {
+    await ApiClient.instance.patch('/notifications/read-all');
+  }
+
+  Future<int> getUnreadNotificationCount() async {
+    final response =
+        await ApiClient.instance.get('/notifications/unread-count');
+
+    if (response is num) return response.toInt();
+
+    if (response is Map) {
+      final count = response['count'] ??
+          response['unreadCount'] ??
+          response['unread_count'];
+      if (count is num) return count.toInt();
       if (count != null) {
-        return int.tryParse(count.toString()) ?? 0;
+        final parsed = int.tryParse(count.toString());
+        if (parsed != null) return parsed;
       }
     }
 
-    throw Exception('Unexpected notification response format');
+    throw const ApiException('Unexpected notification count response.');
   }
 }
