@@ -1,9 +1,9 @@
-
 import 'package:material_ui/material_ui.dart';
 
 import '../../../authentication/screens/login_screen.dart';
 import '../../../authentication/screens/manage_users_screen.dart';
 import '../../../authentication/screens/manage_prisons_screen.dart';
+import '../../../authentication/screens/auth_services/auth_service.dart';
 import '../../../services/admin_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -19,8 +19,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
@@ -32,11 +31,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingStats = true;
   String? _statsError;
 
-  String get _fullName =>
-      (widget.user['full_name'] ??
-              widget.user['fullName'] ??
-              'System Administrator')
-          .toString();
+  String get _fullName => (widget.user['full_name'] ??
+          widget.user['fullName'] ??
+          'System Administrator')
+      .toString();
 
   String get _email => (widget.user['email'] ?? '').toString();
 
@@ -102,10 +100,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
         break;
+
+      case 'Inmates':
+        Navigator.pushNamed(context, '/inmates');
+        break;
+      case 'Visitors':
+        Navigator.pushNamed(context, '/visitors');
+        break;
+      case 'Tracking':
+        Navigator.pushNamed(context, '/tracking');
+        break;
+      case 'Rehabilitation':
+        Navigator.pushNamed(context, '/rehabilitation');
+        break;
+      case 'Duty Roster':
+        Navigator.pushNamed(context, '/staff');
+        break;
+      case 'Release Management':
+        Navigator.pushNamed(context, '/releases');
+        break;
+      case 'Transfers':
+        Navigator.pushNamed(context, '/commissioner-transfers');
+        break;
+      case 'Notifications':
+        Navigator.pushNamed(context, '/commissioner-notifications');
+        break;
     }
   }
 
-  void _logout() {
+  Future<void> _logout() async {
+    await AuthService().logout();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -283,9 +308,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             )
           else
             Text(
-              _statsError != null
-                  ? '—'
-                  : (value?.toString() ?? '—'),
+              _statsError != null ? '—' : (value?.toString() ?? '—'),
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -522,6 +545,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.account_balance_outlined,
                 title: 'Manage Prisons',
                 description: 'Register and manage prisons across Malawi.',
+              ),
+              _buildQuickAction(
+                icon: Icons.groups_outlined,
+                title: 'Inmates',
+                description: 'View and manage inmate records.',
+              ),
+              _buildQuickAction(
+                icon: Icons.people_outline,
+                title: 'Visitors',
+                description: 'Record and review visits.',
+              ),
+              _buildQuickAction(
+                icon: Icons.location_on_outlined,
+                title: 'Tracking',
+                description: 'Review inmate prison and cell locations.',
+              ),
+              _buildQuickAction(
+                icon: Icons.menu_book_outlined,
+                title: 'Rehabilitation',
+                description: 'Manage programmes and attendance.',
+              ),
+              _buildQuickAction(
+                icon: Icons.calendar_month_outlined,
+                title: 'Duty Roster',
+                description: 'Assign and publish staff shifts.',
+              ),
+              _buildQuickAction(
+                icon: Icons.assignment_outlined,
+                title: 'Release Management',
+                description: 'Review release processing.',
+              ),
+              _buildQuickAction(
+                icon: Icons.swap_horiz,
+                title: 'Transfers',
+                description: 'Review and decide transfer requests.',
+              ),
+              _buildQuickAction(
+                icon: Icons.notifications_outlined,
+                title: 'Notifications',
+                description: 'Review system notifications.',
               ),
             ],
           ),

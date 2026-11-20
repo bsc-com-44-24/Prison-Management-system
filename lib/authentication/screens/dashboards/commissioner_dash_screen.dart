@@ -1,7 +1,8 @@
-
 import 'package:material_ui/material_ui.dart';
 
 import '../../../authentication/screens/login_screen.dart';
+import '../../../authentication/screens/auth_services/auth_service.dart';
+import 'commissioner_workflow_screens.dart';
 import '../../../services/commissioner_service.dart';
 
 class CommissionerDashboardScreen extends StatefulWidget {
@@ -48,30 +49,12 @@ class _CommissionerDashboardScreenState
   @override
   void initState() {
     super.initState();
-
-    final token =
-        (widget.user['access_token'] ?? widget.user['token'])?.toString();
-
-    apiService = CommissionerApiService(token: token);
+    apiService = CommissionerApiService();
 
     loadDashboardData();
   }
 
   int get totalPrisons => prisons.length;
-
-  int get totalCapacity {
-    return prisons.fold(
-      0,
-      (sum, prison) => sum + prison.capacity,
-    );
-  }
-
-  int get totalInmates {
-    return prisons.fold(
-      0,
-      (sum, prison) => sum + prison.currentInmates,
-    );
-  }
 
   Future<void> loadDashboardData() async {
     await Future.wait([
@@ -133,20 +116,44 @@ class _CommissionerDashboardScreenState
     }
   }
 
-  void showComingSoon(String title) {
+  void showUnsupported(String title) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$title screen will be connected soon.'),
+        content: Text(
+          '$title is not available in the current backend API.',
+        ),
         backgroundColor: deepGreen,
       ),
     );
   }
 
   void openNotifications() {
-    showComingSoon('Notifications');
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => const CommissionerNotificationsScreen(),
+      ),
+    ).then((_) => loadDashboardData());
   }
 
-  void logout() {
+  void openTransferRequests({required bool pendingOnly}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => CommissionerTransfersScreen(
+          pendingOnly: pendingOnly,
+        ),
+      ),
+    );
+  }
+
+  void openOverviewModule(String route) {
+    Navigator.pushNamed(context, route);
+  }
+
+  Future<void> logout() async {
+    await AuthService().logout();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -244,6 +251,11 @@ class _CommissionerDashboardScreenState
               ],
             ),
           ),
+          IconButton(
+            tooltip: 'Profile and sign out',
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            icon: const Icon(Icons.person_outline, color: Colors.white),
+          ),
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -270,9 +282,7 @@ class _CommissionerDashboardScreenState
                       minHeight: 19,
                     ),
                     child: Text(
-                      notificationCount! > 99
-                          ? '99+'
-                          : '$notificationCount',
+                      notificationCount! > 99 ? '99+' : '$notificationCount',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
@@ -511,22 +521,47 @@ class _CommissionerDashboardScreenState
             buildQuickAction(
               icon: Icons.swap_horiz,
               title: 'View Transfer Requests',
-              onTap: () => showComingSoon('Transfer Requests'),
+              onTap: () => openTransferRequests(pendingOnly: true),
             ),
             buildQuickAction(
               icon: Icons.description_outlined,
               title: 'View Release Requests',
-              onTap: () => showComingSoon('Release Requests'),
+              onTap: () => openOverviewModule('/releases'),
             ),
             buildQuickAction(
               icon: Icons.history,
               title: 'Transfer History',
-              onTap: () => showComingSoon('Transfer History'),
+              onTap: () => openTransferRequests(pendingOnly: false),
             ),
             buildQuickAction(
               icon: Icons.history_toggle_off,
               title: 'Release History',
-              onTap: () => showComingSoon('Release History'),
+              onTap: () => openOverviewModule('/releases'),
+            ),
+            buildQuickAction(
+              icon: Icons.groups_outlined,
+              title: 'View Inmate Records',
+              onTap: () => openOverviewModule('/inmates'),
+            ),
+            buildQuickAction(
+              icon: Icons.location_on_outlined,
+              title: 'Custody Tracking',
+              onTap: () => openOverviewModule('/tracking'),
+            ),
+            buildQuickAction(
+              icon: Icons.people_outline,
+              title: 'Visit Records',
+              onTap: () => openOverviewModule('/visitors'),
+            ),
+            buildQuickAction(
+              icon: Icons.calendar_month_outlined,
+              title: 'Duty Rosters',
+              onTap: () => openOverviewModule('/staff'),
+            ),
+            buildQuickAction(
+              icon: Icons.menu_book_outlined,
+              title: 'Rehabilitation',
+              onTap: () => openOverviewModule('/rehabilitation'),
             ),
           ],
         ),
@@ -592,8 +627,7 @@ class RegisteredPrisonsScreen extends StatefulWidget {
       _RegisteredPrisonsScreenState();
 }
 
-class _RegisteredPrisonsScreenState
-    extends State<RegisteredPrisonsScreen> {
+class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroon = Color(0xFF7A2032);
   static const Color background = Color(0xFFF4F5F3);
@@ -635,16 +669,6 @@ class _RegisteredPrisonsScreenState
   }
 
   Widget buildPrisonCard(PrisonInfo prison) {
-    final percentage = prison.occupancyPercentage;
-    final progress = (percentage / 100).clamp(0.0, 1.0);
-
-    final remainingCapacity =
-        (prison.capacity - prison.currentInmates).clamp(0, prison.capacity);
-
-    final Color capacityColor = percentage >= 90
-        ? maroon
-        : deepGreen;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(17),
@@ -703,105 +727,32 @@ class _RegisteredPrisonsScreenState
               ),
             ],
           ),
-
-          const SizedBox(height: 18),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Occupancy',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
-              ),
-              Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: capacityColor,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 9,
-              backgroundColor: Colors.grey.shade200,
-              color: capacityColor,
-            ),
-          ),
-
-          const SizedBox(height: 17),
-
           Row(
             children: [
               Expanded(
-                child: _capacityDetail(
-                  'Current Inmates',
-                  prison.currentInmates.toString(),
-                  Icons.groups_outlined,
+                child: Text(
+                  prison.location,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
                 ),
               ),
-              Expanded(
-                child: _capacityDetail(
-                  'Maximum Capacity',
-                  prison.capacity.toString(),
-                  Icons.people_outline,
+              Chip(
+                label: Text(prison.active ? 'Active' : 'Inactive'),
+                backgroundColor: prison.active
+                    ? deepGreen.withValues(alpha: 0.1)
+                    : Colors.grey.shade200,
+                labelStyle: TextStyle(
+                  color: prison.active ? deepGreen : Colors.black54,
+                  fontSize: 11,
                 ),
-              ),
-              Expanded(
-                child: _capacityDetail(
-                  'Available Spaces',
-                  remainingCapacity.toString(),
-                  Icons.event_seat_outlined,
-                ),
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _capacityDetail(
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: deepGreen,
-          size: 20,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: deepGreen,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.black54,
-          ),
-        ),
-      ],
     );
   }
 
@@ -831,7 +782,7 @@ class _RegisteredPrisonsScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Prison Capacity Information',
+                'Registered Prisons',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -840,15 +791,13 @@ class _RegisteredPrisonsScreenState
               ),
               const SizedBox(height: 5),
               const Text(
-                'View the current inmate population and available '
-                'capacity for each registered prison.',
+                'View prison location and operating status.',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.black54,
                 ),
               ),
               const SizedBox(height: 20),
-
               if (isLoading)
                 const Center(
                   child: Padding(

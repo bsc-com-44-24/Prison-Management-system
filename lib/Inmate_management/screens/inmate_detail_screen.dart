@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../database/db_helper.dart';
+import '../../core/api/api_client.dart';
 import '../models/inmate_model.dart';
+import '../../services/inmate_service.dart';
 import 'new_inmate_screen.dart';
 
 class InmateDetailScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class InmateDetailScreen extends StatefulWidget {
   const InmateDetailScreen({
     super.key,
     required this.inmate,
-    this.currentUserRole = 'Record Officer',
+    this.currentUserRole = 'Records Officer',
   });
 
   @override
@@ -31,19 +32,31 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
     _loadPriorRecords();
   }
 
-  void _loadPriorRecords() {
-    final allInmates = DBHelper.getInmates();
-    setState(() {
-      _priorRecords = allInmates
-          .where(
-            (record) =>
-                record.id != _currentInmate.id &&
-                record.fullName.toLowerCase().trim() ==
-                    _currentInmate.fullName.toLowerCase().trim() &&
-                record.dateOfBirth.trim() == _currentInmate.dateOfBirth.trim(),
-          )
-          .toList();
-    });
+  Future<void> _loadPriorRecords() async {
+    try {
+      final records = await InmateApiService.getInmates(
+        search: _currentInmate.fullName,
+      );
+      if (!mounted) return;
+      setState(() {
+        _priorRecords = records
+            .map(InmateModel.fromApiJson)
+            .where(
+              (record) =>
+                  record.id != _currentInmate.id &&
+                  record.fullName.toLowerCase().trim() ==
+                      _currentInmate.fullName.toLowerCase().trim() &&
+                  record.dateOfBirth.trim() ==
+                      _currentInmate.dateOfBirth.trim(),
+            )
+            .toList();
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load prior admissions: $error')),
+      );
+    }
   }
 
   void _openFullImage(Uint8List imageBytes) {
@@ -98,38 +111,44 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
       ),
     );
 
-    if (confirm == true) {
+    if (confirm != true) return;
+
+    try {
+      await InmateApiService.dischargeInmate(_currentInmate.id);
+      if (!mounted) return;
       final today = DateTime.now();
       final actualReleaseDate =
-          "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
-
-      final releasedInmate = InmateModel(
-        id: _currentInmate.id,
-        fullName: _currentInmate.fullName,
-        gender: _currentInmate.gender,
-        age: _currentInmate.age,
-        dateOfBirth: _currentInmate.dateOfBirth,
-        nationality: _currentInmate.nationality,
-        facility: _currentInmate.facility,
-        offenceCategory: _currentInmate.offenceCategory,
-        sentenceYears: _currentInmate.sentenceYears,
-        releaseDate: actualReleaseDate,
-        status: 'Released',
-        photos: _currentInmate.photos,
-      );
-
-      await DBHelper.addInmate(releasedInmate);
-
-      if (!mounted) return;
+          '${today.year}-${today.month.toString().padLeft(2, '0')}-'
+          '${today.day.toString().padLeft(2, '0')}';
       setState(() {
-        _currentInmate = releasedInmate;
+        _currentInmate = InmateModel(
+          id: _currentInmate.id,
+          fullName: _currentInmate.fullName,
+          gender: _currentInmate.gender,
+          age: _currentInmate.age,
+          dateOfBirth: _currentInmate.dateOfBirth,
+          admissionDate: _currentInmate.admissionDate,
+          inmateType: _currentInmate.inmateType,
+          nationality: _currentInmate.nationality,
+          facility: _currentInmate.facility,
+          cellId: _currentInmate.cellId,
+          offenceCategory: _currentInmate.offenceCategory,
+          sentenceYears: _currentInmate.sentenceYears,
+          releaseDate: actualReleaseDate,
+          status: 'Released',
+          photos: _currentInmate.photos,
+        );
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF344b3b),
-          content: Text('${_currentInmate.fullName} marked as Released.'),
+          content: Text('${_currentInmate.fullName} discharged.'),
         ),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not discharge inmate: $error')),
       );
     }
   }
@@ -137,7 +156,20 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isActive = _currentInmate.status == 'Active';
-    final bool isRecordOfficer = widget.currentUserRole == 'Record Officer';
+    final normalizedRole = widget.currentUserRole.toLowerCase().trim();
+    final bool isRecordOfficer = normalizedRole == 'record officer' ||
+        normalizedRole == 'records officer' ||
+        normalizedRole == 'admin' ||
+        normalizedRole == 'super admin' ||
+        normalizedRole == 'system admin' ||
+        normalizedRole == 'system administrator';
+    final bool isPrisonOfficer =
+        normalizedRole == 'prison officer' ||
+        normalizedRole == 'duty officer' ||
+        normalizedRole == 'admin' ||
+        normalizedRole == 'super admin' ||
+        normalizedRole == 'system admin' ||
+        normalizedRole == 'system administrator';
     final bool hasPhotos = _currentInmate.photos.isNotEmpty;
 
     return Scaffold(
@@ -347,14 +379,19 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
                     _currentInmate.releaseDate,
                     isHighlight: true,
                   ),
-                  _buildDetailRow('Cell block', 'Main Block'),
+                  _buildDetailRow(
+                    'Cell',
+                    _currentInmate.cellId.isEmpty
+                        ? 'Not assigned'
+                        : _currentInmate.cellId,
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // 5. Role-Restricted Action Buttons (Record Officer Only)
+            // 5. Role-Restricted Action Buttons
             if (isRecordOfficer) ...[
               SizedBox(
                 width: double.infinity,
@@ -367,15 +404,16 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    await Navigator.push(
+                    final updated = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
                             NewInmateScreen(inmateToEdit: _currentInmate),
                       ),
                     );
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
+                    if (updated == true && context.mounted) {
+                      Navigator.pop(context, true);
+                    }
                   },
                   child: const Text(
                     'Edit',
@@ -387,34 +425,34 @@ class _InmateDetailScreenState extends State<InmateDetailScreen> {
                   ),
                 ),
               ),
-              if (isActive) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF344b3b),
-                      side: const BorderSide(
-                        color: Color(0xFF344b3b),
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+            ],
+            if (isPrisonOfficer && isActive) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF344b3b),
+                    side: const BorderSide(
+                      color: Color(0xFF344b3b),
+                      width: 1.5,
                     ),
-                    onPressed: _markAsReleased,
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text(
-                      'Mark as Released',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _markAsReleased,
+                  icon: const Icon(Icons.exit_to_app),
+                  label: const Text(
+                    'Complete Discharge',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ],
+              ),
             ],
           ],
         ),

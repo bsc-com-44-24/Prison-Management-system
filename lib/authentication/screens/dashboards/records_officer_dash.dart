@@ -1,4 +1,3 @@
-
 import 'package:material_ui/material_ui.dart';
 
 import '../../../services/records_officer_service.dart';
@@ -61,19 +60,8 @@ class _RecordsOfficerDashboardScreenState
         'Records Officer',
       );
 
-  String? get accessToken {
-    final token = _getUserValue(
-      ['access_token', 'accessToken', 'token'],
-      '',
-    );
-
-    return token.isEmpty ? null : token;
-  }
-
   Future<RecordsOfficerDashboardStats> _loadDashboard() {
-    return RecordsOfficerApiService.getDashboardStats(
-      token: accessToken,
-    );
+    return RecordsOfficerApiService.getDashboardStats();
   }
 
   Future<void> _refreshDashboard() async {
@@ -94,6 +82,17 @@ class _RecordsOfficerDashboardScreenState
   ) {
     if (callback != null) {
       callback();
+      return;
+    }
+
+    final route = switch (actionName) {
+      'Register Inmate' || 'Manage Inmates' => '/inmates',
+      'Track Inmates' => '/tracking',
+      'Register Visitor' => '/visitors',
+      _ => null,
+    };
+    if (route != null) {
+      Navigator.pushNamed(context, route);
       return;
     }
 
@@ -120,20 +119,15 @@ class _RecordsOfficerDashboardScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(),
-
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 24, 18, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildWelcomeSection(),
-
                       const SizedBox(height: 24),
-
                       _buildSectionTitle('Records Overview'),
-
                       const SizedBox(height: 14),
-
                       FutureBuilder<RecordsOfficerDashboardStats>(
                         future: dashboardFuture,
                         builder: (context, snapshot) {
@@ -158,13 +152,9 @@ class _RecordsOfficerDashboardScreenState
                           return _buildStatistics(stats);
                         },
                       ),
-
                       const SizedBox(height: 28),
-
                       _buildSectionTitle('Quick Actions'),
-
                       const SizedBox(height: 14),
-
                       _buildQuickActions(),
                     ],
                   ),
@@ -196,9 +186,7 @@ class _RecordsOfficerDashboardScreenState
             color: Colors.white,
             size: 27,
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,9 +199,7 @@ class _RecordsOfficerDashboardScreenState
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   userName,
                   style: const TextStyle(
@@ -225,11 +211,10 @@ class _RecordsOfficerDashboardScreenState
               ],
             ),
           ),
-
-          const Icon(
-            Icons.notifications_none,
-            color: Colors.white,
-            size: 27,
+          IconButton(
+            tooltip: 'Profile and sign out',
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            icon: const Icon(Icons.person_outline, color: Colors.white),
           ),
         ],
       ),
@@ -249,9 +234,7 @@ class _RecordsOfficerDashboardScreenState
             color: deepGreen,
           ),
         ),
-
         const SizedBox(height: 7),
-
         const Text(
           'Manage inmate and visitor records at your allocated prison.',
           style: TextStyle(
@@ -291,21 +274,18 @@ class _RecordsOfficerDashboardScreenState
           icon: Icons.groups_outlined,
           iconColor: deepGreen,
         ),
-
         _buildStatCard(
           title: 'New Registrations',
           value: stats.newRegistrations,
           icon: Icons.person_add_alt_1,
           iconColor: maroon,
         ),
-
         _buildStatCard(
           title: 'Total Visits',
           value: stats.totalVisits,
           icon: Icons.people_outline,
           iconColor: deepGreen,
         ),
-
         _buildStatCard(
           title: 'Records Updated',
           value: stats.recordsUpdated,
@@ -345,7 +325,6 @@ class _RecordsOfficerDashboardScreenState
             color: iconColor,
             size: 27,
           ),
-
           Text(
             value.toString(),
             style: const TextStyle(
@@ -354,7 +333,6 @@ class _RecordsOfficerDashboardScreenState
               color: deepGreen,
             ),
           ),
-
           Text(
             title,
             style: const TextStyle(
@@ -382,9 +360,7 @@ class _RecordsOfficerDashboardScreenState
             'Register Inmate',
           ),
         ),
-
         const SizedBox(height: 12),
-
         _buildActionCard(
           title: 'Manage Inmates',
           description: 'View and update inmate records',
@@ -395,9 +371,7 @@ class _RecordsOfficerDashboardScreenState
             'Manage Inmates',
           ),
         ),
-
         const SizedBox(height: 12),
-
         _buildActionCard(
           title: 'Track Inmates',
           description: 'Monitor inmate status and cell-block allocation',
@@ -408,9 +382,7 @@ class _RecordsOfficerDashboardScreenState
             'Track Inmates',
           ),
         ),
-
         const SizedBox(height: 12),
-
         _buildActionCard(
           title: 'Register Visitor',
           description: 'Record visitors and associate them with inmates',
@@ -462,9 +434,7 @@ class _RecordsOfficerDashboardScreenState
                   size: 26,
                 ),
               ),
-
               const SizedBox(width: 14),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,9 +447,7 @@ class _RecordsOfficerDashboardScreenState
                         color: deepGreen,
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     Text(
                       description,
                       style: const TextStyle(
@@ -490,7 +458,6 @@ class _RecordsOfficerDashboardScreenState
                   ],
                 ),
               ),
-
               const Icon(
                 Icons.chevron_right,
                 color: Colors.grey,
@@ -518,9 +485,7 @@ class _RecordsOfficerDashboardScreenState
             color: maroon,
             size: 34,
           ),
-
           const SizedBox(height: 10),
-
           const Text(
             'Unable to load records statistics',
             textAlign: TextAlign.center,
@@ -529,9 +494,7 @@ class _RecordsOfficerDashboardScreenState
               color: deepGreen,
             ),
           ),
-
           const SizedBox(height: 6),
-
           const Text(
             'Check your connection and try again.',
             textAlign: TextAlign.center,
@@ -540,9 +503,7 @@ class _RecordsOfficerDashboardScreenState
               color: Colors.black54,
             ),
           ),
-
           const SizedBox(height: 12),
-
           TextButton.icon(
             onPressed: _refreshDashboard,
             icon: const Icon(Icons.refresh),

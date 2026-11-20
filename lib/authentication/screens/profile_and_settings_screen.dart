@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'dashboards/system_admin_dashboard.dart'; // Import to allow navigation back to Dashboard
+import 'dashboards/role_dashboard_factory.dart';
 import 'logout_screen.dart'; // Import your separated dialog here
 
 class ProfileSettingsScreen extends StatelessWidget {
@@ -211,7 +211,9 @@ class ProfileSettingsScreen extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => DashboardScreen(user: user ?? {}),
+                builder: (context) => RoleDashboardFactory.build(
+                  Map<String, Object?>.from(user ?? const <String, dynamic>{}),
+                ),
               ),
             );
           }

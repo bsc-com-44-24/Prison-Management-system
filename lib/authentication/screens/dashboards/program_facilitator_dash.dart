@@ -1,5 +1,6 @@
-
 import 'package:material_ui/material_ui.dart';
+
+import '../../../rehabilitation/screens/rehabilitation_screen.dart';
 import '../../../services/program_facilitator_service.dart';
 
 class ProgramFacilitatorDashboardScreen extends StatefulWidget {
@@ -50,12 +51,6 @@ class _ProgramFacilitatorDashboardScreenState
         'Program Facilitator';
   }
 
-  String? get token {
-    return widget.user['access_token']?.toString() ??
-        widget.user['accessToken']?.toString() ??
-        widget.user['token']?.toString();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -69,15 +64,13 @@ class _ProgramFacilitatorDashboardScreenState
     });
 
     try {
-      final result =
-          await ProgramFacilitatorApiService.getDashboardStats(
-        token: token,
-      );
+      final result = await ProgramFacilitatorApiService.getDashboardData();
 
       if (!mounted) return;
 
       setState(() {
-        stats = result;
+        stats = result.stats;
+        programmes = result.programmes;
         isLoading = false;
       });
     } catch (e) {
@@ -94,6 +87,19 @@ class _ProgramFacilitatorDashboardScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  Future<void> _openRehabilitation({int initialTab = 0}) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => RehabilitationScreen(
+          user: widget.user,
+          initialTab: initialTab,
+        ),
+      ),
+    );
+    if (mounted) await loadDashboard();
   }
 
   Widget buildStatCard({
@@ -260,11 +266,9 @@ class _ProgramFacilitatorDashboardScreenState
             programme['programmeName']?.toString() ??
             'Unnamed Programme';
 
-        final status = programme['status']?.toString() ??
-            'Not specified';
+        final status = programme['status']?.toString() ?? 'Not specified';
 
-        final description =
-            programme['description']?.toString() ?? '';
+        final description = programme['description']?.toString() ?? '';
 
         final isActive = status.toLowerCase() == 'active';
 
@@ -367,6 +371,11 @@ class _ProgramFacilitatorDashboardScreenState
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Profile and sign out',
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            icon: const Icon(Icons.person_outline),
+          ),
           IconButton(
             onPressed: () {
               showActionMessage('Notifications will appear here.');
@@ -509,9 +518,7 @@ class _ProgramFacilitatorDashboardScreenState
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
                 const Text(
                   'Available Programmes',
                   style: TextStyle(
@@ -549,28 +556,22 @@ class _ProgramFacilitatorDashboardScreenState
                     title: 'Create Programme',
                     description: 'Create a new rehabilitation programme',
                     icon: Icons.add_circle_outline,
-                    onTap: widget.onCreateProgramme ??
-                        () => showActionMessage(
-                          'Create Programme screen will open here.',
-                        ),
+                    onTap:
+                        widget.onCreateProgramme ?? () => _openRehabilitation(),
                   ),
                   buildQuickAction(
                     title: 'Manage Participation',
                     description: 'Manage inmates enrolled in programmes',
                     icon: Icons.groups_outlined,
                     onTap: widget.onManageParticipation ??
-                        () => showActionMessage(
-                          'Manage Participation screen will open here.',
-                        ),
+                        () => _openRehabilitation(),
                   ),
                   buildQuickAction(
                     title: 'Record Attendance',
                     description: 'Record attendance for programme sessions',
                     icon: Icons.fact_check_outlined,
                     onTap: widget.onRecordAttendance ??
-                        () => showActionMessage(
-                          'Record Attendance screen will open here.',
-                        ),
+                        () => _openRehabilitation(initialTab: 1),
                   ),
                 ],
               ),

@@ -1,138 +1,126 @@
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../../core/api/api_client.dart';
 
 class AuthService {
-  // Change this URL if your backend uses a different address.
-  static const String baseUrl = 'http://localhost:8080';
+  static Map<String, dynamic>? currentUser;
 
-Future<void> resetPassword({
-  required String email,
-  required String idNumber,
-  required String newPassword,
-}) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/auth/reset-password'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'email': email.trim(),
-        'idNumber': idNumber.trim(),
-        'newPassword': newPassword,
-      }),
-    );
+  /// Restore the saved bearer token and load the authenticated profile.
+  /// Returns null when there is no valid saved session.
+  Future<Map<String, dynamic>?> restoreSession() async {
+    final api = ApiClient.instance;
+    await api.restoreSession();
+    if (!api.hasSession) return null;
 
-    if (response.statusCode == 200 || response.statusCode == 204) {
-      return;
-    }
-
-    if (response.statusCode == 400 ||
-        response.statusCode == 401 ||
-        response.statusCode == 404) {
-      throw Exception(
-        'Unable to verify your details. Check your email and ID number.',
+    try {
+      final profileResponse = _asJsonMap(
+        await api.get('/auth/me'),
+        'User profile response',
       );
+      final profile = profileResponse['data'] is Map
+          ? Map<String, dynamic>.from(profileResponse['data'] as Map)
+          : profileResponse;
+      final role = profile['role']?.toString();
+      if (role == null || role.trim().isEmpty) {
+        throw const ApiException(
+          'The API did not return a role for the authenticated user.',
+        );
+      }
+      currentUser = profile;
+      return profile;
+    } on ApiException {
+      await api.clearSession();
+      currentUser = null;
+      return null;
     }
+  }
 
-    throw Exception(
-      'Password reset failed. Server status: ${response.statusCode}',
-    );
-  } catch (e) {
-    if (e is Exception) rethrow;
+  Future<void> logout() async {
+    currentUser = null;
+    try {
+      await ApiClient.instance.post('/auth/logout');
+    } catch (_) {
+      // Clear local credentials even when the API cannot be reached.
+    } finally {
+      await ApiClient.instance.clearSession();
+    }
+  }
 
-    throw Exception(
-      'Unable to connect to the server. Please try again.',
+  Future<void> requestPasswordReset({required String email}) async {
+    await ApiClient.instance.post(
+      '/auth/password/forgot',
+      body: {'userEmail': email.trim()},
     );
   }
-}
 
+  Future<void> resetPassword({
+    required String code,
+    required String newPassword,
+  }) async {
+    await ApiClient.instance.post(
+      '/auth/password/reset',
+      body: {
+        'code': code.trim(),
+        'newPassword': newPassword,
+      },
+    );
+  }
 
-  // Update this endpoint if your Spring Boot endpoint differs.
-  static const String loginEndpoint = '/api/auth/login';
-
+  // Login
   Future<Map<String, dynamic>> login({
     required String emailOrUsername,
     required String password,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl$loginEndpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'username': emailOrUsername.trim(),
+    currentUser = null;
+    final api = ApiClient.instance;
+    final loginResponse = _asJsonMap(
+      await api.post(
+        '/auth/login',
+        body: {
+          'usernameOrEmail': emailOrUsername.trim(),
           'password': password,
-        }),
-      );
+        },
+      ),
+      'Login response',
+    );
 
-      final dynamic decodedResponse =
-          response.body.isNotEmpty
-              ? jsonDecode(response.body)
-              : {};
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (decodedResponse is! Map) {
-          throw Exception('Invalid response received from server.');
-        }
-
-        final Map<String, dynamic> responseData =
-            Map<String, dynamic>.from(decodedResponse);
-
-        // Support APIs that wrap their response inside "data".
-        final Map<String, dynamic> userData =
-            responseData['data'] is Map
-                ? Map<String, dynamic>.from(responseData['data'])
-                : responseData;
-
-        final String? token =
-            userData['accessToken']?.toString() ??
-            userData['access_token']?.toString() ??
-            userData['token']?.toString();
-
-        if (token == null || token.isEmpty) {
-          throw Exception('Authentication token was not returned.');
-        }
-
-        final dynamic roleValue =
-            userData['role'] ??
-            userData['userRole'] ??
-            userData['user_role'];
-
-        if (roleValue == null) {
-          throw Exception('User role was not returned by the server.');
-        }
-
-        return {
-          ...userData,
-          'access_token': token,
-          'role': roleValue.toString(),
-        };
-      }
-
-      if (response.statusCode == 401 || response.statusCode == 403) {
-        throw Exception('Invalid email/username or password.');
-      }
-
-      if (response.statusCode == 400) {
-        throw Exception('Please check your login details.');
-      }
-
-      throw Exception(
-        'Login failed. Server returned status ${response.statusCode}.',
-      );
-    } on FormatException {
-      throw Exception('Invalid response format from the server.');
-    } catch (e) {
-      if (e is Exception) rethrow;
-
-      throw Exception(
-        'Unable to connect to the server. Please try again.',
-      );
+    final accessToken = loginResponse['accessToken']?.toString();
+    if (accessToken == null || accessToken.isEmpty) {
+      throw const ApiException('The API did not return an access token.');
     }
+
+    await api.saveAccessToken(accessToken);
+
+    try {
+      final profileResponse = _asJsonMap(
+        await api.get('/auth/me'),
+        'User profile response',
+      );
+      final profile = profileResponse['data'] is Map
+          ? Map<String, dynamic>.from(profileResponse['data'] as Map)
+          : profileResponse;
+
+      final role = profile['role']?.toString();
+      if (role == null || role.trim().isEmpty) {
+        throw const ApiException(
+          'The API did not return a role for the authenticated user.',
+        );
+      }
+
+      final user = {
+        ...profile,
+        'access_token': accessToken,
+        'refresh_token': loginResponse['refreshToken'],
+      };
+      currentUser = user;
+      return user;
+    } on ApiException {
+      await api.clearSession();
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> _asJsonMap(Object? value, String responseName) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    throw ApiException('$responseName was not a JSON object.');
   }
 }

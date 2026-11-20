@@ -3,8 +3,9 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../database/db_helper.dart';
+import '../../core/api/api_client.dart';
 import '../models/inmate_model.dart';
+import '../../services/inmate_service.dart';
 
 class NewInmateScreen extends StatefulWidget {
   final InmateModel? inmateToEdit;
@@ -19,37 +20,156 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController idController = TextEditingController();
-  final TextEditingController prisonController = TextEditingController();
   final TextEditingController dobController = TextEditingController();
+  final TextEditingController admissionDateController = TextEditingController();
+  final TextEditingController bioController = TextEditingController();
+  final TextEditingController medicalHistoryController =
+      TextEditingController();
+  final TextEditingController nextOfKinNameController = TextEditingController();
+  final TextEditingController nextOfKinRelationshipController =
+      TextEditingController();
+  final TextEditingController nextOfKinPhoneController =
+      TextEditingController();
+  final TextEditingController nextOfKinEmailController =
+      TextEditingController();
+  final TextEditingController expectedCourtDateController =
+      TextEditingController();
+  final TextEditingController homeOfOriginController = TextEditingController();
   final TextEditingController offenceController = TextEditingController();
   final TextEditingController sentenceController = TextEditingController();
 
   String? selectedGender;
+  String selectedInmateType = 'REMAND';
+  String selectedSentenceType = 'FIXED_TERM';
+  String? selectedCellId;
+  List<Map<String, dynamic>> _cells = [];
+  List<Map<String, dynamic>> _prisons = [];
+  bool _isLoadingCells = true;
+  bool _isSaving = false;
+  String? _cellError;
   final List<Uint8List> _capturedPhotos = [];
   final List<String> genders = ['Male', 'Female'];
 
   @override
   void initState() {
     super.initState();
+    admissionDateController.text = _formatDate(DateTime.now());
     if (widget.inmateToEdit != null) {
       final inmate = widget.inmateToEdit!;
       nameController.text = inmate.fullName;
       idController.text = inmate.id;
-      prisonController.text = inmate.facility;
       dobController.text = inmate.dateOfBirth;
+      admissionDateController.text = inmate.admissionDate.isEmpty
+          ? _formatDate(DateTime.now())
+          : inmate.admissionDate;
+      selectedInmateType = inmate.inmateType;
       offenceController.text = inmate.offenceCategory;
       sentenceController.text = inmate.sentenceYears.toString();
+      selectedCellId = inmate.cellId.isEmpty ? null : inmate.cellId;
       selectedGender = inmate.gender;
       _capturedPhotos.addAll(inmate.photos);
     }
+    _loadCells();
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  Future<void> _loadCells() async {
+    try {
+      final results = await Future.wait<List<Map<String, dynamic>>>([
+        InmateApiService.getCells(),
+        ApiClient.instance.getAllPages('/prisons'),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _cells = results[0];
+        _prisons = results[1];
+        _isLoadingCells = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _cellError = error.message;
+        _isLoadingCells = false;
+      });
+    }
+  }
+
+  String _cellLabel(Map<String, dynamic> cell) {
+    final prisonId = cell['prisonId']?.toString();
+    final prison = _prisons.where((item) => item['id']?.toString() == prisonId);
+    final prisonName = prison.isEmpty
+        ? (prisonId ?? 'Prison')
+        : prison.first['name']?.toString() ?? 'Prison';
+    final cellName = cell['name']?.toString() ??
+        'Cell ${cell['cellNumber']?.toString() ?? ''}'.trim();
+    return '$prisonName • ${cell['blockName'] ?? 'Block'} • $cellName';
+  }
+
+  String? _validateDate(String? value) {
+    if (value == null || DateTime.tryParse(value.trim()) == null) {
+      return 'Enter a valid date in yyyy-mm-dd format';
+    }
+    return null;
+  }
+
+  String? _validateOptionalDate(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    return _validateDate(value);
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    bool requiredField = true,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? hint,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        validator: validator ??
+            (value) => requiredField && (value == null || value.trim().isEmpty)
+                ? '$label is required'
+                : null,
+      ),
+    );
   }
 
   @override
   void dispose() {
     nameController.dispose();
     idController.dispose();
-    prisonController.dispose();
     dobController.dispose();
+    admissionDateController.dispose();
+    bioController.dispose();
+    medicalHistoryController.dispose();
+    nextOfKinNameController.dispose();
+    nextOfKinRelationshipController.dispose();
+    nextOfKinPhoneController.dispose();
+    nextOfKinEmailController.dispose();
+    expectedCourtDateController.dispose();
+    homeOfOriginController.dispose();
     offenceController.dispose();
     sentenceController.dispose();
     super.dispose();
@@ -57,7 +177,7 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
 
   // Opens the live camera viewfinder dialog (defaults to rear camera on mobile)
   Future<void> _captureInmatePhoto() async {
-    if (_capturedPhotos.length >= 3) return;
+    if (_capturedPhotos.isNotEmpty) return;
 
     try {
       final cameras = await availableCameras();
@@ -146,94 +266,97 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Inmate Photo Capture Section (Max 3)
-              const Text(
-                'Inmate Photos (Max 3)',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+              if (!isEditing) ...[
+                // The backend accepts one inmate photo per record.
+                const Text(
+                  'Inmate Photo',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF344b3b),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF344b3b),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: _capturedPhotos.isEmpty
+                              ? _captureInmatePhoto
+                              : null,
+                          icon: const Icon(Icons.camera_alt),
+                          label: Text(
+                            _capturedPhotos.isEmpty
+                                ? 'Capture inmate photo'
+                                : 'Photo captured',
                           ),
                         ),
-                        onPressed: _capturedPhotos.length < 3
-                            ? _captureInmatePhoto
-                            : null,
-                        icon: const Icon(Icons.camera_alt),
-                        label: Text(
-                          _capturedPhotos.length < 3
-                              ? 'Click here to capture inmate (${_capturedPhotos.length}/3)'
-                              : 'Maximum 3 photos captured',
+                      ),
+                      if (_capturedPhotos.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children:
+                              _capturedPhotos.asMap().entries.map((entry) {
+                            return Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _openFullImage(entry.value),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 10),
+                                    width: 80,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      image: DecorationImage(
+                                        image: MemoryImage(entry.value),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 6,
+                                  top: -6,
+                                  child: GestureDetector(
+                                    onTap: () => setState(
+                                      () => _capturedPhotos.removeAt(entry.key),
+                                    ),
+                                    child: const CircleAvatar(
+                                      radius: 11,
+                                      backgroundColor: Color(0xFF7a1f2d),
+                                      child: Icon(
+                                        Icons.close,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
                         ),
-                      ),
-                    ),
-                    if (_capturedPhotos.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: _capturedPhotos.asMap().entries.map((entry) {
-                          return Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: () => _openFullImage(entry.value),
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 10),
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                    image: DecorationImage(
-                                      image: MemoryImage(entry.value),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 6,
-                                top: -6,
-                                child: GestureDetector(
-                                  onTap: () => setState(
-                                    () => _capturedPhotos.removeAt(entry.key),
-                                  ),
-                                  child: const CircleAvatar(
-                                    radius: 11,
-                                    backgroundColor: Color(0xFF7a1f2d),
-                                    child: Icon(
-                                      Icons.close,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
 
               // 2. Full Name
               const Text(
@@ -252,55 +375,84 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (val) =>
-                    val!.trim().isEmpty ? 'Please enter full name' : null,
+                validator: (val) {
+                  final parts = (val ?? '')
+                      .trim()
+                      .split(RegExp(r'\s+'))
+                      .where((part) => part.isNotEmpty)
+                      .toList();
+                  return parts.length < 2
+                      ? 'Enter the inmate’s first and last name'
+                      : null;
+                },
               ),
               const SizedBox(height: 16),
 
-              // 3. ID / Prison Number (Entered by Record Officer)
-              const Text(
-                'ID / Prison Number',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: idController,
-                readOnly: isEditing,
-                decoration: InputDecoration(
-                  hintText: 'Enter inmate ID / prison number',
-                  filled: true,
-                  fillColor: isEditing ? Colors.grey[200] : Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              if (isEditing) ...[
+                const Text(
+                  'Inmate ID',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: idController,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-                validator: (val) => val!.trim().isEmpty
-                    ? 'Please enter inmate ID / prison number'
-                    : null,
-              ),
+              ] else
+                const Text(
+                  'The API will assign the inmate ID after registration.',
+                  style: TextStyle(color: Colors.black54),
+                ),
               const SizedBox(height: 16),
 
-              // 4. Allocate Prison (Not Predefined)
               const Text(
-                'Allocate Prison',
+                'Allocate Cell',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: prisonController,
-                decoration: InputDecoration(
-                  hintText: 'Enter prison name',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              if (_isLoadingCells)
+                const LinearProgressIndicator()
+              else if (_cellError != null)
+                Row(
+                  children: [
+                    Expanded(child: Text(_cellError!)),
+                    IconButton(
+                      onPressed: _loadCells,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  ],
+                )
+              else
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCellId,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
+                  hint: const Text('Select an available cell'),
+                  items: _cells.map((cell) {
+                    final id = cell['id']?.toString() ?? '';
+                    return DropdownMenuItem(
+                      value: id,
+                      child: Text(_cellLabel(cell)),
+                    );
+                  }).toList(),
+                  onChanged: (value) => setState(() => selectedCellId = value),
+                  validator: (value) =>
+                      value == null ? 'Please select a cell' : null,
                 ),
-                validator: (val) =>
-                    val!.trim().isEmpty ? 'Please enter prison name' : null,
-              ),
               const SizedBox(height: 16),
 
               // 5. Gender
@@ -345,21 +497,19 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (val) =>
-                    val!.trim().isEmpty ? 'Please enter date of birth' : null,
+                validator: _validateDate,
               ),
               const SizedBox(height: 16),
 
-              // 7. Offence (Not Predefined)
               const Text(
-                'Offence',
+                'Admission Date',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: offenceController,
+                controller: admissionDateController,
                 decoration: InputDecoration(
-                  hintText: 'Enter offence',
+                  hintText: 'yyyy-mm-dd',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -367,33 +517,157 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
                     borderSide: BorderSide.none,
                   ),
                 ),
-                validator: (val) =>
-                    val!.trim().isEmpty ? 'Please enter an offence' : null,
+                validator: _validateDate,
               ),
               const SizedBox(height: 16),
 
-              // 8. Sentence (years)
-              const Text(
-                'Sentence (years)',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: sentenceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'e.g. 5',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+              if (!isEditing) ...[
+                const Text(
+                  'Inmate Type',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-                validator: (val) => val!.trim().isEmpty
-                    ? 'Please enter sentence duration'
-                    : null,
-              ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedInmateType,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'REMAND', child: Text('Remand')),
+                    DropdownMenuItem(
+                      value: 'SENTENCED',
+                      child: Text('Sentenced'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => selectedInmateType = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: 'Bio',
+                  controller: bioController,
+                  requiredField: true,
+                  maxLines: 3,
+                ),
+                _buildTextField(
+                  label: 'Medical History',
+                  controller: medicalHistoryController,
+                  requiredField: true,
+                  maxLines: 3,
+                ),
+                _buildTextField(
+                  label: 'Next of Kin Name',
+                  controller: nextOfKinNameController,
+                ),
+                _buildTextField(
+                  label: 'Next of Kin Relationship',
+                  controller: nextOfKinRelationshipController,
+                ),
+                _buildTextField(
+                  label: 'Next of Kin Phone',
+                  controller: nextOfKinPhoneController,
+                  keyboardType: TextInputType.phone,
+                ),
+                _buildTextField(
+                  label: 'Next of Kin Email (optional)',
+                  controller: nextOfKinEmailController,
+                  requiredField: false,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                _buildTextField(
+                  label: 'Home of Origin (optional)',
+                  controller: homeOfOriginController,
+                  requiredField: false,
+                ),
+                if (selectedInmateType == 'REMAND')
+                  _buildTextField(
+                    label: 'Expected Court Date (optional)',
+                    controller: expectedCourtDateController,
+                    requiredField: false,
+                    hint: 'yyyy-mm-dd',
+                    validator: _validateOptionalDate,
+                  ),
+              ],
+
+              if (!isEditing && selectedInmateType == 'SENTENCED') ...[
+                const Text(
+                  'Offence',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: offenceController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter offence',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (val) => selectedInmateType == 'SENTENCED' &&
+                          (val == null || val.trim().isEmpty)
+                      ? 'Please enter an offence'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Sentence Type',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedSentenceType,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'FIXED_TERM',
+                      child: Text('Fixed Term'),
+                    ),
+                    DropdownMenuItem(value: 'LIFE', child: Text('Life')),
+                    DropdownMenuItem(
+                      value: 'UNDETERMINED',
+                      child: Text('Undetermined'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => selectedSentenceType = value);
+                    }
+                  },
+                ),
+                if (selectedSentenceType == 'FIXED_TERM') ...[
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: 'Sentence (years)',
+                    controller: sentenceController,
+                    keyboardType: TextInputType.number,
+                    hint: 'e.g. 5',
+                    validator: (value) {
+                      final years = int.tryParse(value?.trim() ?? '');
+                      return years == null || years <= 0
+                          ? 'Enter a positive number of years'
+                          : null;
+                    },
+                  ),
+                ],
+              ],
               const SizedBox(height: 32),
 
               // Save Button
@@ -407,76 +681,176 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      DateTime dob = DateTime.parse(dobController.text.trim());
-                      DateTime today = DateTime.now();
-                      int age = today.year - dob.year;
-                      if (today.month < dob.month ||
-                          (today.month == dob.month && today.day < dob.day)) {
-                        age--;
-                      }
+                  onPressed: _isSaving
+                      ? null
+                      : () async {
+                          if (!_formKey.currentState!.validate() ||
+                              selectedCellId == null ||
+                              _isLoadingCells ||
+                              _cellError != null) {
+                            return;
+                          }
 
-                      int sentenceYears = int.parse(
-                        sentenceController.text.trim(),
-                      );
-                      DateTime calculatedReleaseDate = DateTime(
-                        today.year + sentenceYears,
-                        today.month,
-                        today.day,
-                      );
+                          setState(() => _isSaving = true);
+                          final nameParts =
+                              nameController.text.trim().split(RegExp(r'\s+'));
+                          final firstName = nameParts.first;
+                          final lastName = nameParts.skip(1).join(' ');
+                          final admissionDate =
+                              admissionDateController.text.trim();
+                          final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
 
-                      String formattedReleaseDate =
-                          "${calculatedReleaseDate.year}-${calculatedReleaseDate.month.toString().padLeft(2, '0')}-${calculatedReleaseDate.day.toString().padLeft(2, '0')}";
+                          try {
+                            if (isEditing) {
+                              final inmateId = widget.inmateToEdit!.id;
+                              await InmateApiService.updateInmate(
+                                id: inmateId,
+                                inmate: {
+                                  'firstName': firstName,
+                                  'lastName': lastName,
+                                  'dateOfBirth': dobController.text.trim(),
+                                  'gender': selectedGender,
+                                  'admissionDate': admissionDate,
+                                },
+                              );
+                              if (selectedCellId !=
+                                  widget.inmateToEdit!.cellId) {
+                                await InmateApiService.allocateCell(
+                                  inmateId: inmateId,
+                                  cellId: selectedCellId!,
+                                );
+                              }
+                            } else {
+                              final inmate = <String, dynamic>{
+                                'firstName': firstName,
+                                'lastName': lastName,
+                                'dateOfBirth': dobController.text.trim(),
+                                'gender': selectedGender,
+                                'admissionDate': admissionDate,
+                                'inmateType': selectedInmateType,
+                                'bio': bioController.text.trim(),
+                                'medicalHistory':
+                                    medicalHistoryController.text.trim(),
+                                'nextOfKinName':
+                                    nextOfKinNameController.text.trim(),
+                                'nextOfKinRelationship':
+                                    nextOfKinRelationshipController.text.trim(),
+                                'nextOfKinPhone':
+                                    nextOfKinPhoneController.text.trim(),
+                                'cellId': selectedCellId,
+                                if (expectedCourtDateController.text
+                                    .trim()
+                                    .isNotEmpty)
+                                  'expectedCourtDate':
+                                      expectedCourtDateController.text.trim(),
+                                if (nextOfKinEmailController.text
+                                    .trim()
+                                    .isNotEmpty)
+                                  'nextOfKinEmail':
+                                      nextOfKinEmailController.text.trim(),
+                                if (homeOfOriginController.text
+                                    .trim()
+                                    .isNotEmpty)
+                                  'homeOfOrigin':
+                                      homeOfOriginController.text.trim(),
+                              };
+                              final created =
+                                  await InmateApiService.createInmate(
+                                inmate: inmate,
+                                photo: _capturedPhotos.isEmpty
+                                    ? null
+                                    : _capturedPhotos.first,
+                              );
 
-                      // Check if inmate already has a prior record by matching Name + DOB
-                      if (!isEditing) {
-                        final existingInmates = DBHelper.getInmates();
-                        final priorMatch = existingInmates.where(
-                          (existing) =>
-                              existing.fullName.toLowerCase().trim() ==
-                                  nameController.text.toLowerCase().trim() &&
-                              existing.dateOfBirth.trim() ==
-                                  dobController.text.trim(),
-                        );
+                              if (selectedInmateType == 'SENTENCED') {
+                                final createdId = created['id']?.toString();
+                                if (createdId == null || createdId.isEmpty) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Inmate saved, but no API ID was returned for the sentence. Check the inmate list before trying again.',
+                                      ),
+                                    ),
+                                  );
+                                  navigator.pop(true);
+                                  return;
+                                }
+                                String? endDate;
+                                if (selectedSentenceType == 'FIXED_TERM') {
+                                  final start = DateTime.parse(admissionDate);
+                                  final years =
+                                      int.parse(sentenceController.text.trim());
+                                  endDate = _formatDate(
+                                    DateTime(
+                                      start.year + years,
+                                      start.month,
+                                      start.day,
+                                    ),
+                                  );
+                                }
+                                try {
+                                  await InmateApiService.createSentence(
+                                    inmateId: createdId,
+                                    offence: offenceController.text.trim(),
+                                    sentenceType: selectedSentenceType,
+                                    startDate: admissionDate,
+                                    endDate: endDate,
+                                  );
+                                } on ApiException catch (error) {
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Inmate saved, but the sentence failed: ${error.message}',
+                                      ),
+                                    ),
+                                  );
+                                  navigator.pop(true);
+                                  return;
+                                }
+                              }
+                            }
 
-                        if (priorMatch.isNotEmpty && context.mounted) {
-                          final previous = priorMatch.first;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF7a1f2d),
-                              duration: const Duration(seconds: 4),
-                              content: Text(
-                                'Returning Inmate Detected! Previous record (${previous.id}) was marked as "${previous.status}".',
+                            if (!mounted) return;
+                            navigator.pop(true);
+                          } on ApiException catch (error) {
+                            if (!mounted) return;
+                            if (!isEditing &&
+                                (error.statusCode == null ||
+                                    error.statusCode! >= 500)) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Registration could not be confirmed. Check the inmate list before retrying. ${error.message}',
+                                  ),
+                                ),
+                              );
+                              navigator.pop(true);
+                              return;
+                            }
+                            setState(() => _isSaving = false);
+                            messenger.showSnackBar(
+                              SnackBar(content: Text(error.message)),
+                            );
+                          } on FormatException catch (error) {
+                            if (!mounted) return;
+                            setState(() => _isSaving = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Invalid date or sentence duration: $error',
+                                ),
                               ),
-                            ),
-                          );
-                        }
-                      }
-
-                      final inmateModel = InmateModel(
-                        id: idController.text.trim(),
-                        fullName: nameController.text.trim(),
-                        gender: selectedGender!,
-                        age: age,
-                        dateOfBirth: dobController.text.trim(),
-                        nationality:
-                            widget.inmateToEdit?.nationality ?? 'Malawian',
-                        facility: prisonController.text.trim(),
-                        offenceCategory: offenceController.text.trim(),
-                        sentenceYears: sentenceYears,
-                        releaseDate: formattedReleaseDate,
-                        status: widget.inmateToEdit?.status ?? 'Active',
-                        photos: List<Uint8List>.from(_capturedPhotos),
-                      );
-
-                      await DBHelper.addInmate(inmateModel);
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                    }
-                  },
+                            );
+                          }
+                        },
                   child: Text(
-                    isEditing ? 'Update Changes' : 'Save',
+                    _isSaving
+                        ? 'Saving...'
+                        : isEditing
+                            ? 'Update Changes'
+                            : 'Save',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,

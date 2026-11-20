@@ -1,5 +1,6 @@
-
 import 'package:material_ui/material_ui.dart';
+import '../../core/api/api_client.dart';
+import '../../services/admin_service.dart';
 
 class ManageUsersScreen extends StatefulWidget {
   final List<Map<String, String>> initialUsers;
@@ -16,27 +17,44 @@ class ManageUsersScreen extends StatefulWidget {
 }
 
 class _ManagedUser {
+  String id;
+  String fullName;
   String username;
   String email;
-  String nationalId;
   String role;
-  String prison;
+  String? prisonId;
+  String prisonName;
+  String status;
+  List<String> permissions;
 
   _ManagedUser({
+    required this.id,
+    required this.fullName,
     required this.username,
     required this.email,
-    required this.nationalId,
     required this.role,
-    required this.prison,
+    required this.prisonId,
+    required this.prisonName,
+    required this.status,
+    required this.permissions,
   });
 
-  factory _ManagedUser.fromMap(Map<String, String> map) {
+  factory _ManagedUser.fromMap(Map<String, dynamic> map) {
     return _ManagedUser(
-      username: map['username'] ?? '',
-      email: map['email'] ?? '',
-      nationalId: map['nationalId'] ?? '',
-      role: map['role'] ?? '',
-      prison: map['prison'] ?? '',
+      id: map['id']?.toString() ?? '',
+      fullName: map['fullName']?.toString() ??
+          map['full_name']?.toString() ??
+          map['username']?.toString() ??
+          '',
+      username: map['username']?.toString() ?? '',
+      email: map['email']?.toString() ?? '',
+      role: map['role']?.toString() ?? '',
+      prisonId: map['prisonId']?.toString(),
+      prisonName: map['prisonName']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'ACTIVE',
+      permissions: (map['permissions'] as List? ?? const [])
+          .map((permission) => permission.toString())
+          .toList(),
     );
   }
 }
@@ -48,7 +66,10 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
   final TextEditingController searchController = TextEditingController();
 
-  late List<_ManagedUser> users;
+  List<_ManagedUser> users = [];
+  List<Map<String, dynamic>> prisons = [];
+  bool isLoading = true;
+  String? loadError;
 
   String searchQuery = '';
 
@@ -56,9 +77,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   void initState() {
     super.initState();
 
-    users = widget.initialUsers
-        .map((user) => _ManagedUser.fromMap(user))
-        .toList();
+    users =
+        widget.initialUsers.map((user) => _ManagedUser.fromMap(user)).toList();
+    _loadUsers();
   }
 
   @override
@@ -74,10 +95,36 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       final query = searchQuery.toLowerCase();
 
       return user.username.toLowerCase().contains(query) ||
+          user.fullName.toLowerCase().contains(query) ||
           user.email.toLowerCase().contains(query) ||
           user.role.toLowerCase().contains(query) ||
-          user.prison.toLowerCase().contains(query);
+          user.prisonName.toLowerCase().contains(query);
     }).toList();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() {
+      isLoading = true;
+      loadError = null;
+    });
+    try {
+      final results = await Future.wait<List<Map<String, dynamic>>>([
+        AdminApiService.getUsers(),
+        AdminApiService.getPrisons(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        users = results[0].map(_ManagedUser.fromMap).toList();
+        prisons = results[1];
+        isLoading = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+        loadError = error.message;
+      });
+    }
   }
 
   void showUserForm({_ManagedUser? user}) {
@@ -87,40 +134,49 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       builder: (dialogContext) {
         return _UserFormDialog(
           user: user,
-          availablePrisons: widget.availablePrisons,
-          onSave: (username, email, nationalId, role, prison) {
-            setState(() {
+          availablePrisons: prisons,
+          onSave: (fullName, username, email, password, role, prisonId) async {
+            try {
               if (user == null) {
-                users.add(
-                  _ManagedUser(
-                    username: username,
-                    email: email,
-                    nationalId: nationalId,
-                    role: role,
-                    prison: prison,
-                  ),
+                await AdminApiService.createUser(
+                  fullName: fullName,
+                  username: username,
+                  password: password!,
+                  email: email,
+                  role: role,
+                  prisonId: prisonId,
                 );
               } else {
-                user.username = username;
-                user.email = email;
-                user.nationalId = nationalId;
-                user.role = role;
-                user.prison = prison;
+                await AdminApiService.updateUser(
+                  id: user.id,
+                  fullName: fullName,
+                  username: username,
+                  email: email,
+                  role: role,
+                  prisonId: prisonId,
+                  permissions: user.permissions,
+                );
               }
-            });
-
-            Navigator.pop(dialogContext);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  user == null
-                      ? 'User created successfully'
-                      : 'User details updated successfully',
+              if (!mounted || !dialogContext.mounted) return;
+              Navigator.pop(dialogContext);
+              await _loadUsers();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    user == null
+                        ? 'User created successfully'
+                        : 'User details updated successfully',
+                  ),
+                  backgroundColor: deepGreen,
                 ),
-                backgroundColor: deepGreen,
-              ),
-            );
+              );
+            } on ApiException catch (error) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(error.message)),
+              );
+            }
           },
         );
       },
@@ -152,7 +208,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: deepGreen.withValues(alpha: 0.12),
@@ -163,7 +218,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 Text(
                   user.username,
                   style: const TextStyle(
@@ -179,10 +233,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                     color: Colors.grey.shade600,
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 const Divider(),
-
                 ListTile(
                   leading: const Icon(
                     Icons.edit_outlined,
@@ -198,26 +250,28 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                     showUserForm(user: user);
                   },
                 ),
-
                 ListTile(
-                  leading: const Icon(
-                    Icons.delete_outline,
+                  leading: Icon(
+                    user.status.toUpperCase() == 'ACTIVE'
+                        ? Icons.person_off_outlined
+                        : Icons.person_outline,
                     color: maroon,
                   ),
-                  title: const Text(
-                    'Delete User',
-                    style: TextStyle(
+                  title: Text(
+                    user.status.toUpperCase() == 'ACTIVE'
+                        ? 'Deactivate User'
+                        : 'Reactivate User',
+                    style: const TextStyle(
                       color: maroon,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  subtitle: const Text('Remove this user account'),
+                  subtitle: const Text('Change account access status'),
                   onTap: () {
                     Navigator.pop(sheetContext);
-                    showDeleteConfirmation(user);
+                    _changeUserStatus(user);
                   },
                 ),
-
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
@@ -239,7 +293,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     );
   }
 
-  void showDeleteConfirmation(_ManagedUser user) {
+  Future<void> _changeUserStatus(_ManagedUser user) async {
+    final isActive = user.status.toUpperCase() == 'ACTIVE';
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -262,25 +317,23 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              const Text(
-                'Delete User?',
+              Text(
+                isActive ? 'Deactivate User?' : 'Reactivate User?',
                 style: TextStyle(
                   fontSize: 21,
                   fontWeight: FontWeight.bold,
-                  color: maroon,
+                  color: isActive ? maroon : deepGreen,
                 ),
               ),
               const SizedBox(height: 12),
-
-              const Text(
-                'Are you sure you want to permanently delete this user account?',
+              Text(
+                isActive
+                    ? 'This will prevent the user from signing in.'
+                    : 'This will restore the user account’s access.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
-
               const SizedBox(height: 14),
-
               Text(
                 user.username,
                 style: const TextStyle(
@@ -296,9 +349,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   color: Colors.grey.shade600,
                 ),
               ),
-
               const SizedBox(height: 22),
-
               Row(
                 children: [
                   Expanded(
@@ -315,26 +366,38 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          users.remove(user);
-                        });
-
+                      onPressed: () async {
                         Navigator.pop(dialogContext);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('User deleted successfully'),
-                            backgroundColor: deepGreen,
-                          ),
-                        );
+                        try {
+                          await AdminApiService.setUserActive(
+                            id: user.id,
+                            active: !isActive,
+                          );
+                          await _loadUsers();
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isActive
+                                    ? 'User deactivated.'
+                                    : 'User reactivated.',
+                              ),
+                              backgroundColor: deepGreen,
+                            ),
+                          );
+                        } on ApiException catch (error) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error.message)),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: maroon,
+                        backgroundColor: isActive ? maroon : deepGreen,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
-                      child: const Text('Yes, Delete'),
+                      child: Text(isActive ? 'Deactivate' : 'Reactivate'),
                     ),
                   ),
                 ],
@@ -352,7 +415,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
     return Scaffold(
       backgroundColor: background,
-
       appBar: AppBar(
         backgroundColor: deepGreen,
         foregroundColor: Colors.white,
@@ -388,7 +450,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
           ],
         ),
       ),
-
       body: SafeArea(
         top: false,
         child: Column(
@@ -427,7 +488,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 ),
               ),
             ),
-
             if (users.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -460,139 +520,163 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   ),
                 ),
               ),
-
             Expanded(
-              child: users.isEmpty
+              child: isLoading
                   ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 30),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 85,
-                              color: deepGreen,
-                            ),
-                            SizedBox(height: 18),
-                            Text(
-                              'No Users Found',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: deepGreen,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'There are currently no user accounts registered in the system.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.black54,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: CircularProgressIndicator(color: deepGreen),
                     )
-                  : displayedUsers.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No matching users found',
-                            style: TextStyle(color: Colors.black54),
+                  : loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(loadError!, textAlign: TextAlign.center),
+                                const SizedBox(height: 12),
+                                ElevatedButton(
+                                  onPressed: _loadUsers,
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
                           ),
                         )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                          itemCount: displayedUsers.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final user = displayedUsers[index];
-
-                            return Card(
-                              color: Colors.white,
-                              elevation: 1,
-                              margin: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () => showUserActions(user),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 15,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 24,
-                                        backgroundColor:
-                                            deepGreen.withValues(alpha: 0.10),
-                                        child: const Icon(
-                                          Icons.person,
-                                          color: deepGreen,
-                                          size: 28,
-                                        ),
+                      : users.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 30),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.people_outline,
+                                      size: 85,
+                                      color: deepGreen,
+                                    ),
+                                    SizedBox(height: 18),
+                                    Text(
+                                      'No Users Found',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: deepGreen,
                                       ),
-                                      const SizedBox(width: 12),
-
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              user.username,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              user.email,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: Colors.grey.shade600,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              user.role.replaceAll('_', ' '),
-                                              style: const TextStyle(
-                                                color: deepGreen,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      const Icon(
-                                        Icons.more_vert,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'There are currently no user accounts registered in the system.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                         color: Colors.black54,
+                                        fontSize: 14,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            )
+                          : displayedUsers.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No matching users found',
+                                    style: TextStyle(color: Colors.black54),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                                  itemCount: displayedUsers.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 10),
+                                  itemBuilder: (context, index) {
+                                    final user = displayedUsers[index];
+
+                                    return Card(
+                                      color: Colors.white,
+                                      elevation: 1,
+                                      margin: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(16),
+                                        onTap: () => showUserActions(user),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 15,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 24,
+                                                backgroundColor: deepGreen
+                                                    .withValues(alpha: 0.10),
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  color: deepGreen,
+                                                  size: 28,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      user.username,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      user.email,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        color: Colors
+                                                            .grey.shade600,
+                                                        fontSize: 11,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      user.role
+                                                          .replaceAll('_', ' '),
+                                                      style: const TextStyle(
+                                                        color: deepGreen,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: 11,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.more_vert,
+                                                color: Colors.black54,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
             ),
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () => showUserForm(),
         backgroundColor: maroon,
@@ -606,14 +690,15 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
 class _UserFormDialog extends StatefulWidget {
   final _ManagedUser? user;
-  final List<String> availablePrisons;
+  final List<Map<String, dynamic>> availablePrisons;
 
-  final Function(
+  final Future<void> Function(
+    String fullName,
     String username,
     String email,
-    String nationalId,
+    String? password,
     String role,
-    String prison,
+    String? prisonId,
   ) onSave;
 
   const _UserFormDialog({
@@ -632,24 +717,27 @@ class _UserFormDialogState extends State<_UserFormDialog> {
 
   final _formKey = GlobalKey<FormState>();
 
+  late final TextEditingController fullNameController;
   late final TextEditingController usernameController;
   late final TextEditingController emailController;
-  late final TextEditingController nationalIdController;
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
   String? selectedRole;
   String? selectedPrison;
+  bool isSaving = false;
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
   final List<String> roles = [
-    'COMMISSIONER',
-    'PRISON_OFFICER',
-    'RECORDS_OFFICER',
-    'PROGRAM_FACILITATOR',
+    'Super Admin',
+    'Commissioner',
+    'Records Officer',
+    'Prison Officer',
+    'Duty Officer',
+    'Program Facilitator',
   ];
 
   bool get isEditing => widget.user != null;
@@ -658,25 +746,25 @@ class _UserFormDialogState extends State<_UserFormDialog> {
   void initState() {
     super.initState();
 
+    fullNameController = TextEditingController(
+      text: widget.user?.fullName ?? '',
+    );
     usernameController = TextEditingController(
       text: widget.user?.username ?? '',
     );
     emailController = TextEditingController(
       text: widget.user?.email ?? '',
     );
-    nationalIdController = TextEditingController(
-      text: widget.user?.nationalId ?? '',
-    );
 
     selectedRole = widget.user?.role;
-    selectedPrison = widget.user?.prison;
+    selectedPrison = widget.user?.prisonId;
   }
 
   @override
   void dispose() {
+    fullNameController.dispose();
     usernameController.dispose();
     emailController.dispose();
-    nationalIdController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
@@ -812,15 +900,17 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     ),
                   ],
                 ),
-
                 const Divider(height: 24),
-
+                buildField(
+                  label: 'Full Name',
+                  icon: Icons.badge_outlined,
+                  controller: fullNameController,
+                ),
                 buildField(
                   label: 'Username',
                   icon: Icons.person_outline,
                   controller: usernameController,
                 ),
-
                 buildField(
                   label: 'Email Address',
                   icon: Icons.email_outlined,
@@ -837,13 +927,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     return null;
                   },
                 ),
-
-                buildField(
-                  label: 'National ID',
-                  icon: Icons.badge_outlined,
-                  controller: nationalIdController,
-                ),
-
                 Padding(
                   padding: const EdgeInsets.only(bottom: 13),
                   child: DropdownButtonFormField<String>(
@@ -855,10 +938,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     items: roles.map((role) {
                       return DropdownMenuItem(
                         value: role,
-                        child: Text(
-                          role.replaceAll('_', ' '),
-                          style: const TextStyle(fontSize: 13),
-                        ),
+                        child: Text(role, style: const TextStyle(fontSize: 13)),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -868,7 +948,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                         value == null ? 'Please select a role' : null,
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(bottom: 13),
                   child: DropdownButtonFormField<String>(
@@ -877,22 +956,20 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       'Select Prison',
                       Icons.account_balance_outlined,
                     ),
-                    items: widget.availablePrisons.map((prison) {
-                      return DropdownMenuItem(
-                        value: prison,
-                        child: Text(
-                          prison,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      );
-                    }).toList(),
+                    items: [
+                      ...widget.availablePrisons.map((prison) {
+                        final id = prison['id']?.toString() ?? '';
+                        return DropdownMenuItem(
+                          value: id,
+                          child: Text(prison['name']?.toString() ?? id),
+                        );
+                      }),
+                    ],
                     onChanged: widget.availablePrisons.isEmpty
                         ? null
                         : (value) {
                             setState(() => selectedPrison = value);
                           },
-                    validator: (value) =>
-                        value == null ? 'Please select a prison' : null,
                     hint: Text(
                       widget.availablePrisons.isEmpty
                           ? 'No prisons available'
@@ -900,7 +977,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     ),
                   ),
                 ),
-
                 if (!isEditing)
                   buildField(
                     label: 'Password',
@@ -914,7 +990,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       return null;
                     },
                   ),
-
                 if (!isEditing)
                   buildField(
                     label: 'Confirm Password',
@@ -928,7 +1003,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       return null;
                     },
                   ),
-
                 if (isEditing)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 14),
@@ -940,9 +1014,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                       ),
                     ),
                   ),
-
                 const SizedBox(height: 5),
-
                 Row(
                   children: [
                     Expanded(
@@ -962,17 +1034,22 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (!_formKey.currentState!.validate()) return;
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                if (!_formKey.currentState!.validate()) return;
 
-                          widget.onSave(
-                            usernameController.text.trim(),
-                            emailController.text.trim(),
-                            nationalIdController.text.trim(),
-                            selectedRole!,
-                            selectedPrison!,
-                          );
-                        },
+                                setState(() => isSaving = true);
+                                await widget.onSave(
+                                  fullNameController.text.trim(),
+                                  usernameController.text.trim(),
+                                  emailController.text.trim(),
+                                  isEditing ? null : passwordController.text,
+                                  selectedRole!,
+                                  selectedPrison,
+                                );
+                                if (mounted) setState(() => isSaving = false);
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: maroon,
                           foregroundColor: Colors.white,
@@ -982,7 +1059,11 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                           ),
                         ),
                         child: Text(
-                          isEditing ? 'Save Changes' : 'Create',
+                          isSaving
+                              ? 'Saving...'
+                              : isEditing
+                                  ? 'Save Changes'
+                                  : 'Create',
                         ),
                       ),
                     ),

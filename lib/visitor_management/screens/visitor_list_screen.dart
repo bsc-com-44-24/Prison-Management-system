@@ -1,11 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../models/visitor.dart';
-import '../services/visitor_database.dart';
+import '../services/visitor_api_service.dart';
+import '../../services/inmate_service.dart';
 import 'visitor_details_screen.dart';
 
 class VisitorListScreen extends StatefulWidget {
-  const VisitorListScreen({super.key});
+  final bool readOnly;
+  const VisitorListScreen({super.key, this.readOnly = false});
 
   @override
   State<VisitorListScreen> createState() => _VisitorListScreenState();
@@ -23,7 +25,8 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
 
   Future<void> _loadVisitors() async {
     try {
-      final visitors = await VisitorDatabase.instance.getVisitors();
+      final records = await VisitorApiService.getVisits();
+      final visitors = records.map(Visitor.fromApiJson).toList();
 
       if (!mounted) return;
 
@@ -58,47 +61,6 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
     }
   }
 
-  Future<void> _updateVisitorStatus(
-    Visitor visitor,
-    String status,
-  ) async {
-    if (visitor.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This visitor has no database ID.'),
-        ),
-      );
-      return;
-    }
-
-    try {
-      await VisitorDatabase.instance.updateVisitorStatus(
-        visitor.id!,
-        status,
-      );
-
-      if (!mounted) return;
-
-      await _loadVisitors();
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Visitor status updated to $status.'),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not update visitor status: $e'),
-        ),
-      );
-    }
-  }
-
   void _openDetailsWindow(
     BuildContext context,
     Visitor visitor,
@@ -107,8 +69,6 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
       context: context,
       builder: (dialogContext) => VisitorDetailsScreen(
         visitor: visitor,
-        onApprove: () => _updateVisitorStatus(visitor, 'Approved'),
-        onDecline: () => _updateVisitorStatus(visitor, 'Declined'),
       ),
     );
   }
@@ -143,13 +103,7 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
         break;
 
       case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Tracking navigation will be connected next.',
-            ),
-          ),
-        );
+        Navigator.pushNamed(context, '/tracking');
         break;
 
       case 3:
@@ -185,6 +139,7 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
         ),
 
         actions: [
+          if (!widget.readOnly)
           IconButton(
             icon: const Icon(
               Icons.add,
@@ -214,9 +169,6 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                   itemCount: _visitors.length,
                   itemBuilder: (context, index) {
                     final visitor = _visitors[index];
-
-                    final isApproved = visitor.status == 'Approved';
-                    final isPending = visitor.status == 'Pending';
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -250,21 +202,13 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: isApproved
-                                  ? const Color(0xFFEAF6EE)
-                                  : isPending
-                                      ? const Color(0xFFFFF9E6)
-                                      : const Color(0xFFFCEBEB),
+                              color: const Color(0xFFEAF6EE),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               visitor.status,
                               style: TextStyle(
-                                color: isApproved
-                                    ? const Color(0xFF2E7D32)
-                                    : isPending
-                                        ? const Color(0xFFF57C00)
-                                        : const Color(0xFF7A1F2D),
+                                color: const Color(0xFF2E7D32),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -275,7 +219,7 @@ class _VisitorListScreenState extends State<VisitorListScreen> {
                     );
                   },
                 ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: widget.readOnly ? null : BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         currentIndex: 0,
@@ -329,24 +273,58 @@ class AddVisitorScreen extends StatefulWidget {
 
 class _AddVisitorScreenState extends State<AddVisitorScreen> {
   final _nameController = TextEditingController();
-  final _idController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _relationshipController = TextEditingController();
   final _inmateController = TextEditingController();
-  final _purposeController = TextEditingController();
   final _belongingsController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _startController = TextEditingController();
+  final _endController = TextEditingController();
 
   bool _hasBelongings = false;
+  bool _isSaving = false;
+  bool _loadingInmates = true;
+  List<Map<String, dynamic>> _inmates = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _dateController.text = _date(now);
+    _startController.text = _time(now);
+    _endController.text = _time(now.add(const Duration(minutes: 30)));
+    _loadInmates();
+  }
+
+  Future<void> _loadInmates() async {
+    try {
+      final inmates = await InmateApiService.getInmates();
+      if (!mounted) return;
+      setState(() {
+        _inmates = inmates;
+        _loadingInmates = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _loadingInmates = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load inmate choices: $error')),
+      );
+    }
+  }
+
+  String _date(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+
+  String _time(DateTime value) =>
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
 
   @override
   void dispose() {
     _nameController.dispose();
-    _idController.dispose();
-    _phoneController.dispose();
-    _relationshipController.dispose();
     _inmateController.dispose();
-    _purposeController.dispose();
     _belongingsController.dispose();
+    _dateController.dispose();
+    _startController.dispose();
+    _endController.dispose();
     super.dispose();
   }
 
@@ -362,24 +340,24 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
       return;
     }
 
-    final visitor = Visitor(
-      name: name,
-      idNumber: _idController.text.trim(),
-      phone: _phoneController.text.trim(),
-      relationship: _relationshipController.text.trim(),
-      inmateName: _inmateController.text.trim(),
-      purpose: _purposeController.text.trim(),
-      belongings: _hasBelongings
-          ? (_belongingsController.text.trim().isEmpty
-              ? 'Yes'
-              : _belongingsController.text.trim())
-          : 'None',
-      status: 'Pending',
-      visitDateTime: DateTime.now(),
-    );
+    final inmateId = _inmateController.text.trim();
+    if (inmateId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter the inmate API ID (UUID).')),
+      );
+      return;
+    }
 
     try {
-      await VisitorDatabase.instance.insertVisitor(visitor);
+      setState(() => _isSaving = true);
+      await VisitorApiService.recordFamilyVisit(
+        visitorFullName: name,
+        inmateId: inmateId,
+        visitDate: _dateController.text.trim(),
+        startTime: _startController.text.trim(),
+        endTime: _endController.text.trim(),
+        itemsBrought: _hasBelongings ? _belongingsController.text.trim() : '',
+      );
 
       if (!mounted) return;
 
@@ -389,9 +367,11 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not save visitor: $e'),
+          content: Text('Could not record visit: $e'),
         ),
       );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -435,56 +415,40 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _idController,
-              decoration: const InputDecoration(
-                labelText: 'National ID Number',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
+            _loadingInmates
+                ? const LinearProgressIndicator()
+                : DropdownButtonFormField<String>(
+                    initialValue: _inmateController.text.isEmpty
+                        ? null
+                        : _inmateController.text,
+                    decoration: const InputDecoration(
+                      labelText: 'Inmate being visited',
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    items: _inmates.map((inmate) {
+                      final id = inmate['id']?.toString() ?? '';
+                      final name = '${inmate['firstName'] ?? ''} ${inmate['lastName'] ?? ''}'.trim();
+                      return DropdownMenuItem(value: id, child: Text(name.isEmpty ? id : name));
+                    }).toList(),
+                    onChanged: (value) => _inmateController.text = value ?? '',
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Select an inmate'
+                        : null,
+                  ),
+            const SizedBox(height: 12),
             const SizedBox(height: 12),
             TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'Contact Phone Number',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-              ),
+              controller: _dateController,
+              decoration: const InputDecoration(labelText: 'Visit date (YYYY-MM-DD)'),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _relationshipController,
-              decoration: const InputDecoration(
-                labelText: 'Relationship to Inmate',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _inmateController,
-              decoration: const InputDecoration(
-                labelText: 'Inmate Being Visited',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _purposeController,
-              decoration: const InputDecoration(
-                labelText: 'Purpose of Visit',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
+            Row(children: [
+              Expanded(child: TextField(controller: _startController, decoration: const InputDecoration(labelText: 'Start (HH:MM)'))),
+              const SizedBox(width: 12),
+              Expanded(child: TextField(controller: _endController, decoration: const InputDecoration(labelText: 'End (HH:MM)'))),
+            ]),
             const SizedBox(height: 16),
             const Text(
               'Are there any Checked Belongings / Items Left?',
@@ -569,9 +533,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: _saveVisitor,
-                child: const Text(
-                  'Save',
+                onPressed: _isSaving ? null : _saveVisitor,
+                child: Text(
+                  _isSaving ? 'Recording...' : 'Record Visit',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

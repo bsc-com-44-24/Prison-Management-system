@@ -20,7 +20,11 @@ class ShiftModel {
     required this.officerCount,
     this.supervisorPhone = '+265 99 123 4567',
     this.supervisorEmail = 'supervisor@prisons.gov.mw',
-    this.assignedGuards = const ['Officer J. Banda', 'Officer T. Phiri', 'Officer L. Nkhata'],
+    this.assignedGuards = const [
+      'Officer J. Banda',
+      'Officer T. Phiri',
+      'Officer L. Nkhata'
+    ],
   });
 
   Map<String, dynamic> toMap() {
@@ -46,11 +50,14 @@ class ShiftModel {
       supervisorName: map['supervisorName']?.toString() ?? 'Supervisor',
       supervisorRole: map['supervisorRole']?.toString() ?? 'Guard Lead',
       assignedLocation: map['assignedLocation']?.toString() ?? 'Main Block',
-      officerCount: map['officerCount'] is int ? map['officerCount'] : int.tryParse(map['officerCount']?.toString() ?? '0') ?? 0,
+      officerCount: map['officerCount'] is int
+          ? map['officerCount']
+          : int.tryParse(map['officerCount']?.toString() ?? '0') ?? 0,
       supervisorPhone: map['supervisorPhone']?.toString() ?? '+265 99 123 4567',
-      supervisorEmail: map['supervisorEmail']?.toString() ?? 'supervisor@prisons.gov.mw',
-      assignedGuards: map['assignedGuards'] != null 
-          ? List<String>.from(map['assignedGuards']) 
+      supervisorEmail:
+          map['supervisorEmail']?.toString() ?? 'supervisor@prisons.gov.mw',
+      assignedGuards: map['assignedGuards'] != null
+          ? List<String>.from(map['assignedGuards'])
           : ['Officer J. Banda', 'Officer T. Phiri', 'Officer L. Nkhata'],
     );
   }
