@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../database/db_helper.dart';
 import '../models/inmate_model.dart';
@@ -310,7 +310,7 @@ class _NewInmateScreenState extends State<NewInmateScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: selectedGender,
+                initialValue: selectedGender,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../models/staff_model.dart';
 
 class RosterCard extends StatelessWidget {
@@ -6,7 +6,7 @@ class RosterCard extends StatelessWidget {
   final VoidCallback onContactPressed; // Callback for popup action
 
   const RosterCard({
-    super.key, 
+    super.key,
     required this.shift,
     required this.onContactPressed,
   });
@@ -36,7 +36,7 @@ class RosterCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -53,12 +53,16 @@ class RosterCard extends StatelessWidget {
                   children: [
                     Text(
                       shift.shiftName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF1E293B)),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       shift.timeRange,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
                     ),
                   ],
                 ),
@@ -71,7 +75,10 @@ class RosterCard extends StatelessWidget {
                 ),
                 child: Text(
                   shift.status,
-                  style: TextStyle(color: badgeTextColor, fontSize: 11, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: badgeTextColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -81,8 +88,9 @@ class RosterCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: const Color(0xFF2C4A3E).withOpacity(0.1),
-                child: const Icon(Icons.person, color: Color(0xFF2C4A3E), size: 20),
+                backgroundColor: const Color(0xFF2C4A3E).withValues(alpha: 0.1),
+                child: const Icon(Icons.person,
+                    color: Color(0xFF2C4A3E), size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -91,23 +99,27 @@ class RosterCard extends StatelessWidget {
                   children: [
                     Text(
                       shift.supervisorName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
                       shift.supervisorRole,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 12),
                     ),
                   ],
                 ),
               ),
               TextButton(
                 onPressed: onContactPressed, // Hooks up the pop-up modal
-                child: const Text("Contact", style: TextStyle(color: Color(0xFF991B1B), fontWeight: FontWeight.bold)),
+                child: const Text("Contact",
+                    style: TextStyle(
+                        color: Color(0xFF991B1B), fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 12),
-         Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // 1. Wrap the inner row in Expanded so it occupies available space smoothly
@@ -125,11 +137,13 @@ class RosterCard extends StatelessWidget {
                       child: Text(
                         "${shift.officerCount} Officers - ${shift.assignedLocation}",
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis, // Prevents text squishing on narrow screens
+                        overflow: TextOverflow
+                            .ellipsis, // Prevents text squishing on narrow screens
                         style: const TextStyle(
                           color: Color(0xFF2C2C2C), // Solid high-contrast color
                           fontSize: 12,
-                          fontWeight: FontWeight.w600, // Semi-bold for extra clarity on low-DPI displays
+                          fontWeight: FontWeight
+                              .w600, // Semi-bold for extra clarity on low-DPI displays
                         ),
                       ),
                     ),

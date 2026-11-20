@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../database/db_helper.dart';
 import '../models/inmate_model.dart';
@@ -6,7 +6,8 @@ import 'new_inmate_screen.dart';
 import 'inmate_detail_screen.dart';
 
 class InmateListScreen extends StatefulWidget {
-  final String currentUserRole; // Pass the logged-in user's role (defaults to 'Record Officer' for testing)
+  final String
+      currentUserRole; // Pass the logged-in user's role (defaults to 'Record Officer' for testing)
 
   const InmateListScreen({super.key, this.currentUserRole = 'Record Officer'});
 
@@ -64,7 +65,6 @@ class _InmateListScreenState extends State<InmateListScreen> {
 
     final List<InmateModel> filteredInmates = inmates.where((inmate) {
       bool matchesFilter = true;
-
       if (selectedFilter == 'Male') {
         matchesFilter = inmate.gender == 'Male';
       } else if (selectedFilter == 'Female') {
@@ -75,8 +75,8 @@ class _InmateListScreenState extends State<InmateListScreen> {
       final query = searchQuery.toLowerCase();
       final bool matchesSearch =
           inmate.fullName.toLowerCase().contains(query) ||
-          inmate.id.toLowerCase().contains(query) ||
-          inmate.facility.toLowerCase().contains(query);
+              inmate.id.toLowerCase().contains(query) ||
+              inmate.facility.toLowerCase().contains(query);
 
       return matchesFilter && matchesSearch;
     }).toList();
@@ -95,7 +95,10 @@ class _InmateListScreenState extends State<InmateListScreen> {
         ),
         title: const Text(
           'Inmates',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
 
@@ -167,7 +170,9 @@ class _InmateListScreenState extends State<InmateListScreen> {
                 ? const Center(
                     child: Text(
                       'No inmate records found.',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -304,9 +309,8 @@ class _InmateListScreenState extends State<InmateListScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: isActive
-                                  ? Colors.green[50]
-                                  : Colors.red[50],
+                              color:
+                                  isActive ? Colors.green[50] : Colors.red[50],
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isActive
@@ -360,7 +364,6 @@ class _InmateListScreenState extends State<InmateListScreen> {
         selectedItemColor: const Color(0xFF7A1F2D),
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-
         onTap: (index) {
           switch (index) {
             case 0:
@@ -380,13 +383,15 @@ class _InmateListScreenState extends State<InmateListScreen> {
               break;
           }
         },
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             label: 'Home',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Inmates'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Inmates',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_outlined),
             label: 'Tracking',
