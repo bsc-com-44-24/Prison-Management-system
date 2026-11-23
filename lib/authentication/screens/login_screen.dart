@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'register_screen.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/api/api_client.dart';
@@ -307,6 +309,60 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                      SizedBox(height: size.height * 0.04),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _handleSignIn,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: maroonButton,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'sign in',
+                            style: TextStyle(
+                              fontFamily: fontFamily,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Don't have an account? ",
+                              style: TextStyle(
+                                fontFamily: fontFamily,
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                );
+                              },
+                              child: const Text(
+                                'Create account',
+                                style: TextStyle(
+                                  fontFamily: fontFamily,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: deepGreen,
                           const SizedBox(width: 12),
                           Expanded(
                             child: SizedBox(
