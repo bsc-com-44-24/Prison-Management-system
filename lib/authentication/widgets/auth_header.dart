@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../theme.dart';
 
 class AuthHeader extends StatelessWidget {
@@ -7,6 +8,7 @@ class AuthHeader extends StatelessWidget {
   final double logoSize;
   final bool logoLeft; // register design: crest at the top-left
   final bool serifSubtitle; // login design: serif subtitle
+  final bool showLogo;
 
   const AuthHeader({
     super.key,
@@ -15,6 +17,7 @@ class AuthHeader extends StatelessWidget {
     this.logoSize = 90,
     this.logoLeft = false,
     this.serifSubtitle = false,
+    this.showLogo = true,
   });
 
   @override
@@ -26,28 +29,30 @@ class AuthHeader extends StatelessWidget {
           Icon(Icons.shield, size: logoSize, color: Colors.amber),
     );
 
-    final content = Column(children: [
-      if (!logoLeft) ...[logo, const SizedBox(height: 12)],
-      Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
+    final content = Column(
+      children: [
+        if (showLogo && !logoLeft) ...[logo, const SizedBox(height: 12)],
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-      const SizedBox(height: 10),
-      Text(
-        subtitle,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: serifSubtitle ? 20 : 17,
-          fontFamily: serifSubtitle ? 'Times New Roman' : null,
-          fontFamilyFallback: serifSubtitle ? const ['serif'] : null,
+        const SizedBox(height: 10),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: serifSubtitle ? 20 : 17,
+            fontFamily: serifSubtitle ? 'Times New Roman' : null,
+            fontFamilyFallback: serifSubtitle ? const ['serif'] : null,
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
 
     return ClipPath(
       clipper: _CurveClipper(),
@@ -60,14 +65,16 @@ class AuthHeader extends StatelessWidget {
           20,
           70,
         ),
-        child: logoLeft
-            ? Stack(children: [
-                Align(alignment: Alignment.topLeft, child: logo),
-                Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: content,
-                ),
-              ])
+        child: showLogo && logoLeft
+            ? Stack(
+                children: [
+                  Align(alignment: Alignment.topLeft, child: logo),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: content,
+                  ),
+                ],
+              )
             : content,
       ),
     );

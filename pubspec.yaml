@@ -31,3 +31,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/loggg.jpg
+dev_dependencies:
+  flutter_test: any

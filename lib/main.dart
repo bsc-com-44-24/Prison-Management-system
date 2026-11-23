@@ -10,7 +10,6 @@ import 'authentication/screens/login_screen.dart';
 import 'authentication/screens/reset_password.dart';
 import 'authentication/screens/auth_services/auth_service.dart';
 import 'authentication/screens/dashboards/role_dashboard_factory.dart';
-import 'authentication/screens/dashboards/commissioner_workflow_screens.dart';
 import 'authentication/screens/manage_prisons_screen.dart';
 import 'authentication/screens/manage_users_screen.dart';
 import 'authentication/screens/profile_and_settings_screen.dart';
@@ -133,9 +132,19 @@ Route<dynamic>? _generateAuthenticatedRoute(RouteSettings settings) {
         case '/manage-prisons':
           return const ManagePrisonsScreen();
         case '/commissioner-transfers':
-          return const CommissionerTransfersScreen(pendingOnly: true);
+          return Scaffold(
+            appBar: AppBar(title: const Text('Pending Commissioner Transfers')),
+            body: const Center(
+              child: Text('No pending transfers available.'),
+            ),
+          );
         case '/commissioner-notifications':
-          return const CommissionerNotificationsScreen();
+          return Scaffold(
+            appBar: AppBar(title: const Text('Commissioner Notifications')),
+            body: const Center(
+              child: Text('No commissioner notifications available.'),
+            ),
+          );
         case '/profile':
           return ProfileSettingsScreen(user: user);
         case '/inmates':
