@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive/hive.dart';
 
 import '../../Inmate_management/models/inmate_model.dart';
@@ -15,8 +15,7 @@ class ReleaseManagementScreen extends StatefulWidget {
       _ReleaseManagementScreenState();
 }
 
-class _ReleaseManagementScreenState
-    extends State<ReleaseManagementScreen> {
+class _ReleaseManagementScreenState extends State<ReleaseManagementScreen> {
   static const Color primaryColor = Color(0xFF344B3B);
   static const Color burgundy = Color(0xFF801F32);
 
@@ -52,8 +51,7 @@ class _ReleaseManagementScreenState
         }
       }
 
-      final releaseList =
-          await ReleaseDatabase.instance.getAllReleases();
+      final releaseList = await ReleaseDatabase.instance.getAllReleases();
 
       if (!mounted) return;
 
@@ -154,8 +152,7 @@ class _ReleaseManagementScreenState
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      ReleaseProcessingScreen(
+                  builder: (context) => ReleaseProcessingScreen(
                     inmate: inmate,
                     release: release,
                   ),
@@ -182,13 +179,11 @@ class _ReleaseManagementScreenState
           foregroundColor: Colors.white,
           elevation: 0,
           toolbarHeight: 75,
-
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
               bottom: Radius.circular(22),
             ),
           ),
-
           leading: IconButton(
             icon: const Icon(
               Icons.arrow_back,
@@ -198,7 +193,6 @@ class _ReleaseManagementScreenState
               Navigator.maybePop(context);
             },
           ),
-
           title: const Text(
             'Release Management',
             style: TextStyle(
@@ -206,7 +200,6 @@ class _ReleaseManagementScreenState
               fontWeight: FontWeight.bold,
             ),
           ),
-
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(58),
             child: Container(
@@ -217,32 +210,25 @@ class _ReleaseManagementScreenState
                 18,
                 12,
               ),
-
               child: Container(
                 height: 34,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
-
                 child: TabBar(
                   indicatorSize: TabBarIndicatorSize.tab,
-
                   indicator: BoxDecoration(
                     color: burgundy,
                     borderRadius: BorderRadius.circular(9),
                   ),
-
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey.shade700,
-
                   labelStyle: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
-
                   dividerColor: Colors.transparent,
-
                   tabs: const [
                     Tab(text: 'Upcoming'),
                     Tab(text: 'Released'),

@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
+import 'auth_services/auth_service.dart';
 
 class SignOutDialog extends StatelessWidget {
-  const SignOutDialog({Key? key}) : super(key: key);
+  const SignOutDialog({super.key});
 
   static const Color maroonButton = Color(0xFF7A2032);
   static const String fontFamily = 'Roboto';
@@ -32,7 +34,7 @@ class SignOutDialog extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: maroonButton.withOpacity(0.08),
+                color: maroonButton.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -75,8 +77,9 @@ class SignOutDialog extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Navigate back to Login Screen and clear routing stack
+                onPressed: () async {
+                  await AuthService().logout();
+                  if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     '/login',

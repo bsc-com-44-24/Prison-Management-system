@@ -42,8 +42,8 @@ class DatabaseHelper {
   Future<void> setRememberedUser(String? value) async {
     _remembered = value;
     if (value == null) {
-      await _db.delete('settings',
-          where: 'key = ?', whereArgs: ['remembered_user']);
+      await _db
+          .delete('settings', where: 'key = ?', whereArgs: ['remembered_user']);
     } else {
       await _db.insert('settings', {'key': 'remembered_user', 'value': value},
           conflictAlgorithm: ConflictAlgorithm.replace);

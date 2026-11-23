@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'dashboard_screen.dart'; // Import to allow navigation back to Dashboard
+import 'package:material_ui/material_ui.dart';
+import 'dashboards/role_dashboard_factory.dart';
 import 'logout_screen.dart'; // Import your separated dialog here
 
 class ProfileSettingsScreen extends StatelessWidget {
   // Accept the dynamic user map from the login/dashboard flow
   final Map<String, dynamic>? user;
 
-  const ProfileSettingsScreen({Key? key, this.user}) : super(key: key);
+  const ProfileSettingsScreen({super.key, this.user});
 
   static const Color deepGreen = Color(0xFF344B3B);
   static const Color maroonButton = Color(0xFF7A2032);
@@ -64,7 +64,8 @@ class ProfileSettingsScreen extends StatelessWidget {
                         const CircleAvatar(
                           radius: 26,
                           backgroundColor: Colors.black,
-                          child: Icon(Icons.person, color: Colors.white, size: 28),
+                          child:
+                              Icon(Icons.person, color: Colors.white, size: 28),
                         ),
                         Positioned(
                           bottom: 0,
@@ -99,7 +100,8 @@ class ProfileSettingsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(4),
@@ -133,11 +135,21 @@ class ProfileSettingsScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _buildSettingsOption(Icons.person_outline, 'Edit Profile', showDivider: true),
-                        _buildSettingsOption(Icons.lock_outline, 'Change Password', showDivider: true),
-                        _buildSettingsOption(Icons.notifications_none, 'Notification Settings', showDivider: true),
-                        _buildSettingsOption(Icons.settings_outlined, 'App Settings', showDivider: true),
-                        _buildSettingsOption(Icons.help_outline, 'Help & Support', showDivider: false),
+                        _buildSettingsOption(
+                            Icons.person_outline, 'Edit Profile',
+                            showDivider: true),
+                        _buildSettingsOption(
+                            Icons.lock_outline, 'Change Password',
+                            showDivider: true),
+                        _buildSettingsOption(
+                            Icons.notifications_none, 'Notification Settings',
+                            showDivider: true),
+                        _buildSettingsOption(
+                            Icons.settings_outlined, 'App Settings',
+                            showDivider: true),
+                        _buildSettingsOption(
+                            Icons.help_outline, 'Help & Support',
+                            showDivider: false),
                       ],
                     ),
                   ),
@@ -154,7 +166,8 @@ class ProfileSettingsScreen extends StatelessWidget {
                     ),
                     child: TextButton.icon(
                       onPressed: () => SignOutDialog.show(context),
-                      icon: const Icon(Icons.logout, color: maroonButton, size: 18),
+                      icon: const Icon(Icons.logout,
+                          color: maroonButton, size: 18),
                       label: const Text(
                         'Sign Out',
                         style: TextStyle(
@@ -183,10 +196,14 @@ class ProfileSettingsScreen extends StatelessWidget {
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Inmates'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Reports'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline), label: 'Inmates'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart), label: 'Reports'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
         onTap: (index) {
           // If 'Home' (index 0) is tapped, navigate to DashboardScreen carrying user data
@@ -194,7 +211,9 @@ class ProfileSettingsScreen extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => DashboardScreen(user: user ?? {}),
+                builder: (context) => RoleDashboardFactory.build(
+                  Map<String, Object?>.from(user ?? const <String, dynamic>{}),
+                ),
               ),
             );
           }
@@ -203,7 +222,8 @@ class ProfileSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsOption(IconData icon, String title, {bool showDivider = true}) {
+  Widget _buildSettingsOption(IconData icon, String title,
+      {bool showDivider = true}) {
     return Column(
       children: [
         ListTile(
@@ -217,11 +237,17 @@ class ProfileSettingsScreen extends StatelessWidget {
               color: Colors.black87,
             ),
           ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+          trailing:
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
           onTap: () {},
         ),
         if (showDivider)
-          Divider(height: 1, thickness: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16),
+          Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey.shade100,
+              indent: 16,
+              endIndent: 16),
       ],
     );
   }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/tracking_model.dart';
 import '../../visitor_management/screens/visitor_list_screen.dart';
@@ -17,7 +17,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
   // Sample tracking records.
   // These are mock records, not database records.
   final List<TrackingItem> _trackingItems = [];
-
 
   void _goBack() {
     if (Navigator.canPop(context)) {
@@ -76,9 +75,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = _trackingItems
-        .where((item) => item.category == _selectedTab)
-        .toList();
+    final filteredItems =
+        _trackingItems.where((item) => item.category == _selectedTab).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -135,9 +133,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         tab,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : Colors.white70,
+                          color: isSelected ? Colors.white : Colors.white70,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -187,8 +183,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 16,
-                                    backgroundColor:
-                                        const Color(0xFFF1F5F9),
+                                    backgroundColor: const Color(0xFFF1F5F9),
                                     child: Icon(
                                       _selectedTab == 'Visitors'
                                           ? Icons.person_outline
@@ -235,8 +230,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(left: 42),
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       item.subtitle,
