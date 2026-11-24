@@ -2,20 +2,271 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../authentication/screens/login_screen.dart';
 import '../../../authentication/screens/auth_services/auth_service.dart';
-import 'commissioner_workflow_screens.dart';
 import '../../../services/commissioner_service.dart';
 
 class CommissionerDashboardScreen extends StatefulWidget {
   final Map<String, Object?> user;
 
-  const CommissionerDashboardScreen({
-    super.key,
-    required this.user,
-  });
+  const CommissionerDashboardScreen({super.key, required this.user});
 
   @override
   State<CommissionerDashboardScreen> createState() =>
       _CommissionerDashboardScreenState();
+}
+
+class CommissionerNotificationsScreen extends StatefulWidget {
+  const CommissionerNotificationsScreen({super.key});
+
+  @override
+  State<CommissionerNotificationsScreen> createState() =>
+      _CommissionerNotificationsScreenState();
+}
+
+class _CommissionerNotificationsScreenState
+    extends State<CommissionerNotificationsScreen> {
+  static const Color deepGreen = Color(0xFF344B3B);
+  final CommissionerApiService apiService = CommissionerApiService();
+  List<Map<String, dynamic>> notifications = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    loadNotifications();
+  }
+
+  Future<void> loadNotifications() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    try {
+      final result = await apiService.getNotifications();
+      if (!mounted) return;
+      setState(() {
+        notifications = result;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        errorMessage = 'Unable to load notifications.';
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> markRead(Map<String, dynamic> notification) async {
+    final id = notification['id']?.toString();
+    if (id == null || id.isEmpty) return;
+    await apiService.markNotificationRead(id);
+    await loadNotifications();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F5F3),
+      appBar: AppBar(
+        backgroundColor: deepGreen,
+        foregroundColor: Colors.white,
+        title: const Text('Notifications'),
+        actions: [
+          TextButton(
+            onPressed: isLoading
+                ? null
+                : () async {
+                    await apiService.markAllNotificationsRead();
+                    await loadNotifications();
+                  },
+            child: const Text(
+              'Mark all read',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: deepGreen))
+          : errorMessage != null
+          ? Center(child: Text(errorMessage!))
+          : notifications.isEmpty
+          ? const Center(child: Text('No notifications found'))
+          : RefreshIndicator(
+              onRefresh: loadNotifications,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: notifications.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final notification = notifications[index];
+                  final unread =
+                      notification['read'] == false ||
+                      notification['unread'] == true;
+                  final title =
+                      notification['title']?.toString() ?? 'Notification';
+                  final message =
+                      notification['message']?.toString() ??
+                      notification['body']?.toString() ??
+                      '';
+
+                  return Card(
+                    child: ListTile(
+                      leading: Icon(
+                        unread
+                            ? Icons.notifications_active
+                            : Icons.notifications_none,
+                        color: deepGreen,
+                      ),
+                      title: Text(title),
+                      subtitle: message.isEmpty ? null : Text(message),
+                      onTap: unread ? () => markRead(notification) : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+}
+
+class CommissionerTransfersScreen extends StatefulWidget {
+  final bool pendingOnly;
+
+  const CommissionerTransfersScreen({super.key, required this.pendingOnly});
+
+  @override
+  State<CommissionerTransfersScreen> createState() =>
+      _CommissionerTransfersScreenState();
+}
+
+class _CommissionerTransfersScreenState
+    extends State<CommissionerTransfersScreen> {
+  static const Color deepGreen = Color(0xFF344B3B);
+  final CommissionerApiService apiService = CommissionerApiService();
+  List<Map<String, dynamic>> transfers = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    loadTransfers();
+  }
+
+  Future<void> loadTransfers() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    try {
+      final result = await apiService.getTransfers(
+        status: widget.pendingOnly ? 'PENDING' : null,
+      );
+      if (!mounted) return;
+      setState(() {
+        transfers = result;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        errorMessage = 'Unable to load transfers.';
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> updateTransfer(
+    Map<String, dynamic> transfer,
+    bool approve,
+  ) async {
+    final id = transfer['id']?.toString();
+    if (id == null || id.isEmpty) return;
+    if (approve) {
+      await apiService.approveTransfer(id);
+    } else {
+      await apiService.rejectTransfer(id);
+    }
+    await loadTransfers();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F5F3),
+      appBar: AppBar(
+        backgroundColor: deepGreen,
+        foregroundColor: Colors.white,
+        title: Text(
+          widget.pendingOnly ? 'Transfer Requests' : 'Transfer History',
+        ),
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator(color: deepGreen))
+          : errorMessage != null
+          ? Center(child: Text(errorMessage!))
+          : transfers.isEmpty
+          ? const Center(child: Text('No transfers found'))
+          : RefreshIndicator(
+              onRefresh: loadTransfers,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: transfers.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final transfer = transfers[index];
+                  final status = transfer['status']?.toString() ?? 'PENDING';
+                  final inmateName =
+                      transfer['inmateName']?.toString() ??
+                      transfer['inmateId']?.toString() ??
+                      'Unknown inmate';
+
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            inmateName,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 6),
+                          Text('Status: $status'),
+                          if (widget.pendingOnly &&
+                              status.toUpperCase() == 'PENDING') ...[
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () =>
+                                        updateTransfer(transfer, true),
+                                    child: const Text('Approve'),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () =>
+                                        updateTransfer(transfer, false),
+                                    child: const Text('Reject'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+    );
+  }
 }
 
 class _CommissionerDashboardScreenState
@@ -57,10 +308,7 @@ class _CommissionerDashboardScreenState
   int get totalPrisons => prisons.length;
 
   Future<void> loadDashboardData() async {
-    await Future.wait([
-      loadPrisons(),
-      loadNotifications(),
-    ]);
+    await Future.wait([loadPrisons(), loadNotifications()]);
   }
 
   Future<void> loadPrisons() async {
@@ -119,9 +367,7 @@ class _CommissionerDashboardScreenState
   void showUnsupported(String title) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '$title is not available in the current backend API.',
-        ),
+        content: Text('$title is not available in the current backend API.'),
         backgroundColor: deepGreen,
       ),
     );
@@ -140,9 +386,7 @@ class _CommissionerDashboardScreenState
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => CommissionerTransfersScreen(
-          pendingOnly: pendingOnly,
-        ),
+        builder: (_) => CommissionerTransfersScreen(pendingOnly: pendingOnly),
       ),
     );
   }
@@ -156,9 +400,7 @@ class _CommissionerDashboardScreenState
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
   }
@@ -171,9 +413,7 @@ class _CommissionerDashboardScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RegisteredPrisonsScreen(
-          apiService: apiService,
-        ),
+        builder: (_) => RegisteredPrisonsScreen(apiService: apiService),
       ),
     );
   }
@@ -219,11 +459,7 @@ class _CommissionerDashboardScreenState
                 },
               );
             },
-            icon: const Icon(
-              Icons.menu,
-              color: Colors.white,
-              size: 28,
-            ),
+            icon: const Icon(Icons.menu, color: Colors.white, size: 28),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -243,10 +479,7 @@ class _CommissionerDashboardScreenState
                   commissionerName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -325,10 +558,7 @@ class _CommissionerDashboardScreenState
           const SizedBox(height: 5),
           const Text(
             'Prison Oversight Dashboard',
-            style: TextStyle(
-              fontSize: 14,
-              color: deepGreen,
-            ),
+            style: TextStyle(fontSize: 14, color: deepGreen),
           ),
         ],
       ),
@@ -389,18 +619,12 @@ class _CommissionerDashboardScreenState
                   if (isLoadingPrisons)
                     const Text(
                       'Loading prison records...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     )
                   else if (prisonError != null)
                     const Text(
                       'Unable to load prison records',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.red,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.red),
                     )
                   else
                     Text(
@@ -423,11 +647,7 @@ class _CommissionerDashboardScreenState
                 ),
               )
             else
-              const Icon(
-                Icons.chevron_right,
-                color: deepGreen,
-                size: 27,
-              ),
+              const Icon(Icons.chevron_right, color: deepGreen, size: 27),
           ],
         ),
       ),
@@ -447,10 +667,7 @@ class _CommissionerDashboardScreenState
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 18,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
@@ -467,11 +684,7 @@ class _CommissionerDashboardScreenState
             CircleAvatar(
               radius: 25,
               backgroundColor: deepGreen,
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 24,
-              ),
+              child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -483,10 +696,7 @@ class _CommissionerDashboardScreenState
                 ),
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Colors.black54,
-            ),
+            const Icon(Icons.chevron_right, color: Colors.black54),
           ],
         ),
       ),
@@ -617,10 +827,7 @@ class _CommissionerDashboardScreenState
 class RegisteredPrisonsScreen extends StatefulWidget {
   final CommissionerApiService apiService;
 
-  const RegisteredPrisonsScreen({
-    super.key,
-    required this.apiService,
-  });
+  const RegisteredPrisonsScreen({super.key, required this.apiService});
 
   @override
   State<RegisteredPrisonsScreen> createState() =>
@@ -732,10 +939,7 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
               Expanded(
                 child: Text(
                   prison.location,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ),
               Chip(
@@ -766,10 +970,7 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
         elevation: 0,
         title: const Text(
           'Registered Prisons',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       body: RefreshIndicator(
@@ -792,19 +993,14 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
               const SizedBox(height: 5),
               const Text(
                 'View prison location and operating status.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
               const SizedBox(height: 20),
               if (isLoading)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(35),
-                    child: CircularProgressIndicator(
-                      color: deepGreen,
-                    ),
+                    child: CircularProgressIndicator(color: deepGreen),
                   ),
                 )
               else if (errorMessage != null)
@@ -819,10 +1015,7 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
                           size: 40,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          errorMessage!,
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(errorMessage!, textAlign: TextAlign.center),
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: loadPrisons,
@@ -850,9 +1043,7 @@ class _RegisteredPrisonsScreenState extends State<RegisteredPrisonsScreen> {
                         SizedBox(height: 12),
                         Text(
                           'No registered prisons found.',
-                          style: TextStyle(
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(color: Colors.black54),
                         ),
                       ],
                     ),

@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:material_ui/material_ui.dart';
+
 import '../../core/api/api_client.dart';
 import '../../services/admin_service.dart';
 
@@ -42,7 +45,8 @@ class _ManagedUser {
   factory _ManagedUser.fromMap(Map<String, dynamic> map) {
     return _ManagedUser(
       id: map['id']?.toString() ?? '',
-      fullName: map['fullName']?.toString() ??
+      fullName:
+          map['fullName']?.toString() ??
           map['full_name']?.toString() ??
           map['username']?.toString() ??
           '',
@@ -77,8 +81,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   void initState() {
     super.initState();
 
-    users =
-        widget.initialUsers.map((user) => _ManagedUser.fromMap(user)).toList();
+    users = widget.initialUsers
+        .map((user) => _ManagedUser.fromMap(user))
+        .toList();
     _loadUsers();
   }
 
@@ -173,9 +178,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
               );
             } on ApiException catch (error) {
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(error.message)),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(error.message)));
             }
           },
         );
@@ -188,9 +192,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
         return SafeArea(
@@ -211,11 +213,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: deepGreen.withValues(alpha: 0.12),
-                  child: const Icon(
-                    Icons.person,
-                    size: 32,
-                    color: deepGreen,
-                  ),
+                  child: const Icon(Icons.person, size: 32, color: deepGreen),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -228,18 +226,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 ),
                 Text(
                   user.email,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 20),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(
-                    Icons.edit_outlined,
-                    color: deepGreen,
-                  ),
+                  leading: const Icon(Icons.edit_outlined, color: deepGreen),
                   title: const Text(
                     'Edit User',
                     style: TextStyle(fontWeight: FontWeight.w600),
@@ -344,10 +336,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
               Text(
                 user.email,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 22),
               Row(
@@ -441,10 +430,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
             const Expanded(
               child: Text(
                 'Manage Users',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -465,10 +451,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Search users...',
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: deepGreen,
-                  ),
+                  prefixIcon: const Icon(Icons.search, color: deepGreen),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(
                           onPressed: () {
@@ -503,11 +486,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.groups,
-                        color: deepGreen,
-                        size: 20,
-                      ),
+                      const Icon(Icons.groups, color: deepGreen, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Total Users: ${users.length}',
@@ -526,153 +505,146 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                       child: CircularProgressIndicator(color: deepGreen),
                     )
                   : loadError != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(loadError!, textAlign: TextAlign.center),
-                                const SizedBox(height: 12),
-                                ElevatedButton(
-                                  onPressed: _loadUsers,
-                                  child: const Text('Retry'),
-                                ),
-                              ],
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(loadError!, textAlign: TextAlign.center),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: _loadUsers,
+                              child: const Text('Retry'),
                             ),
-                          ),
-                        )
-                      : users.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 30),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.people_outline,
-                                      size: 85,
-                                      color: deepGreen,
-                                    ),
-                                    SizedBox(height: 18),
-                                    Text(
-                                      'No Users Found',
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: deepGreen,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'There are currently no user accounts registered in the system.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.black54,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : users.isEmpty
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 30),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 85,
+                              color: deepGreen,
+                            ),
+                            SizedBox(height: 18),
+                            Text(
+                              'No Users Found',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: deepGreen,
                               ),
-                            )
-                          : displayedUsers.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'No matching users found',
-                                    style: TextStyle(color: Colors.black54),
-                                  ),
-                                )
-                              : ListView.separated(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                                  itemCount: displayedUsers.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: 10),
-                                  itemBuilder: (context, index) {
-                                    final user = displayedUsers[index];
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'There are currently no user accounts registered in the system.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : displayedUsers.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No matching users found',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                      itemCount: displayedUsers.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final user = displayedUsers[index];
 
-                                    return Card(
-                                      color: Colors.white,
-                                      elevation: 1,
-                                      margin: EdgeInsets.zero,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(16),
-                                        onTap: () => showUserActions(user),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 15,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 24,
-                                                backgroundColor: deepGreen
-                                                    .withValues(alpha: 0.10),
-                                                child: const Icon(
-                                                  Icons.person,
-                                                  color: deepGreen,
-                                                  size: 28,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      user.username,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      user.email,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        color: Colors
-                                                            .grey.shade600,
-                                                        fontSize: 11,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      user.role
-                                                          .replaceAll('_', ' '),
-                                                      style: const TextStyle(
-                                                        color: deepGreen,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 11,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const Icon(
-                                                Icons.more_vert,
-                                                color: Colors.black54,
-                                              ),
-                                            ],
+                        return Card(
+                          color: Colors.white,
+                          elevation: 1,
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => showUserActions(user),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 15,
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: deepGreen.withValues(
+                                      alpha: 0.10,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: deepGreen,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user.username,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          user.email,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          user.role.replaceAll('_', ' '),
+                                          style: const TextStyle(
+                                            color: deepGreen,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.more_vert,
+                                    color: Colors.black54,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -699,7 +671,8 @@ class _UserFormDialog extends StatefulWidget {
     String? password,
     String role,
     String? prisonId,
-  ) onSave;
+  )
+  onSave;
 
   const _UserFormDialog({
     required this.user,
@@ -720,16 +693,11 @@ class _UserFormDialogState extends State<_UserFormDialog> {
   late final TextEditingController fullNameController;
   late final TextEditingController usernameController;
   late final TextEditingController emailController;
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  late final TextEditingController passwordController;
 
   String? selectedRole;
   String? selectedPrison;
   bool isSaving = false;
-
-  bool obscurePassword = true;
-  bool obscureConfirmPassword = true;
 
   final List<String> roles = [
     'Super Admin',
@@ -742,6 +710,16 @@ class _UserFormDialogState extends State<_UserFormDialog> {
 
   bool get isEditing => widget.user != null;
 
+  static String _generateTemporaryPassword() {
+    const characters =
+        'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#\$%&*';
+    final random = Random.secure();
+    return List.generate(
+      16,
+      (_) => characters[random.nextInt(characters.length)],
+    ).join();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -752,8 +730,9 @@ class _UserFormDialogState extends State<_UserFormDialog> {
     usernameController = TextEditingController(
       text: widget.user?.username ?? '',
     );
-    emailController = TextEditingController(
-      text: widget.user?.email ?? '',
+    emailController = TextEditingController(text: widget.user?.email ?? '');
+    passwordController = TextEditingController(
+      text: isEditing ? '' : _generateTemporaryPassword(),
     );
 
     selectedRole = widget.user?.role;
@@ -766,7 +745,6 @@ class _UserFormDialogState extends State<_UserFormDialog> {
     usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
-    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -781,10 +759,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
       suffixIcon: suffix,
       filled: true,
       fillColor: const Color(0xFFF7F8F7),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 15,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(13),
         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -805,8 +780,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
     required IconData icon,
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
-    bool isPassword = false,
-    bool isConfirmPassword = false,
+    bool readOnly = false,
     String? Function(String?)? validator,
   }) {
     return Padding(
@@ -814,40 +788,17 @@ class _UserFormDialogState extends State<_UserFormDialog> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        obscureText: isPassword
-            ? obscurePassword
-            : isConfirmPassword
-                ? obscureConfirmPassword
-                : false,
-        validator: validator ??
+        readOnly: readOnly,
+        obscureText: false,
+        validator:
+            validator ??
             (value) {
               if (value == null || value.trim().isEmpty) {
                 return '$label is required';
               }
               return null;
             },
-        decoration: fieldDecoration(
-          label,
-          icon,
-          suffix: isPassword || isConfirmPassword
-              ? IconButton(
-                  onPressed: () {
-                    setState(() {
-                      if (isPassword) {
-                        obscurePassword = !obscurePassword;
-                      } else {
-                        obscureConfirmPassword = !obscureConfirmPassword;
-                      }
-                    });
-                  },
-                  icon: Icon(
-                    (isPassword ? obscurePassword : obscureConfirmPassword)
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                  ),
-                )
-              : null,
-        ),
+        decoration: fieldDecoration(label, icon),
       ),
     );
   }
@@ -857,9 +808,7 @@ class _UserFormDialogState extends State<_UserFormDialog> {
     return Dialog(
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.88,
@@ -979,39 +928,17 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                 ),
                 if (!isEditing)
                   buildField(
-                    label: 'Password',
+                    label: 'Temporary Password',
                     icon: Icons.lock_outline,
                     controller: passwordController,
-                    isPassword: true,
-                    validator: (value) {
-                      if (value == null || value.length < 8) {
-                        return 'Password must have at least 8 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                if (!isEditing)
-                  buildField(
-                    label: 'Confirm Password',
-                    icon: Icons.lock_outline,
-                    controller: confirmPasswordController,
-                    isConfirmPassword: true,
-                    validator: (value) {
-                      if (value != passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
+                    readOnly: true,
                   ),
                 if (isEditing)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 14),
                     child: Text(
                       'Password is not changed when editing user details.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                   ),
                 const SizedBox(height: 5),
@@ -1062,8 +989,8 @@ class _UserFormDialogState extends State<_UserFormDialog> {
                           isSaving
                               ? 'Saving...'
                               : isEditing
-                                  ? 'Save Changes'
-                                  : 'Create',
+                              ? 'Save Changes'
+                              : 'Create',
                         ),
                       ),
                     ),

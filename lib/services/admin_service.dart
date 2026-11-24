@@ -33,9 +33,7 @@ class DashboardApiService {
 }
 
 class AdminApiService {
-  static Future<List<Map<String, dynamic>>> getUsers({
-    String? search,
-  }) {
+  static Future<List<Map<String, dynamic>>> getUsers({String? search}) {
     return ApiClient.instance.getAllPages(
       '/users',
       filters: {
@@ -55,6 +53,7 @@ class AdminApiService {
     required String role,
     String? email,
     String? prisonId,
+    bool sendPasswordEmail = true,
   }) async {
     await ApiClient.instance.post(
       '/users',
@@ -65,6 +64,7 @@ class AdminApiService {
         'role': role,
         if (email != null && email.isNotEmpty) 'email': email,
         if (prisonId != null && prisonId.isNotEmpty) 'prisonId': prisonId,
+        if (sendPasswordEmail) 'sendPasswordEmail': true,
       },
     );
   }
@@ -104,6 +104,8 @@ class AdminApiService {
     required String name,
     required String location,
     required String blockName,
+    String blockId = '',
+    required int cellNumber,
     required int firstCellCapacity,
   }) async {
     final response = await ApiClient.instance.post(
@@ -115,8 +117,9 @@ class AdminApiService {
         'blocks': [
           {
             'name': blockName,
+            if (blockId.isNotEmpty) 'id': blockId,
             'cells': [
-              {'cellNumber': 1, 'capacity': firstCellCapacity},
+              {'cellNumber': cellNumber, 'capacity': firstCellCapacity},
             ],
           },
         ],
@@ -133,10 +136,7 @@ class AdminApiService {
   }) async {
     await ApiClient.instance.patch(
       '/prisons/$id',
-      body: {
-        'name': name,
-        'location': location,
-      },
+      body: {'name': name, 'location': location},
     );
   }
 }

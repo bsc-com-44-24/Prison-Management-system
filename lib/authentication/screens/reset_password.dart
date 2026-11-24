@@ -77,9 +77,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
-          ),
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: maroonButton,
         ),
       );
@@ -173,16 +171,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade300,
-                ),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: deepGreen,
-                  width: 1.5,
-                ),
+                borderSide: const BorderSide(color: deepGreen, width: 1.5),
               ),
             ),
           ),
@@ -205,11 +198,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     ? 'Enter the email code and choose\na new password'
                     : 'Request a code to reset your password',
                 logoSize: 70,
+                showLogo: false,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -226,9 +218,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               return 'Please enter your email';
                             }
 
-                            if (!RegExp(
-                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                            ).hasMatch(value.trim())) {
+                            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                .hasMatch(value.trim())) {
                               return 'Enter a valid email address';
                             }
 
@@ -313,13 +304,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           onPressed: _isLoading
                               ? null
                               : _codeSent
-                                  ? _resetPassword
-                                  : _requestResetCode,
+                              ? _resetPassword
+                              : _requestResetCode,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: maroonButton,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor:
-                                maroonButton.withValues(alpha: 0.5),
+                            disabledBackgroundColor: maroonButton.withValues(
+                              alpha: 0.5,
+                            ),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -345,14 +337,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextButton(
-                        onPressed:
-                            _isLoading ? null : () => Navigator.pop(context),
+                        onPressed: _isLoading
+                            ? null
+                            : () => Navigator.pop(context),
                         child: const Text(
                           'Back to Sign In',
-                          style: TextStyle(
-                            color: deepGreen,
-                            fontSize: 15,
-                          ),
+                          style: TextStyle(color: deepGreen, fontSize: 15),
                         ),
                       ),
                       const SizedBox(height: 24),
