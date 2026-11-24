@@ -12,6 +12,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(context, '/login');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Background color will now blend seamlessly with the transparent logo edges
+    const Color splashBackground = Color(0xFF1B2E20);
+
+    return Scaffold(
+      backgroundColor: splashBackground,
     _restoreSession();
   }
 
@@ -41,6 +56,11 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Image.asset(
+                'assets/images/logo2.png',
+                width: 180,
+                height: 180,
+                fit: BoxFit.contain,
               Container(
                 width: 160,
                 height: 160,
@@ -100,4 +120,5 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+}
 }
